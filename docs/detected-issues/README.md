@@ -1,4 +1,4 @@
-# Kho lỗi hệ thống (Known-Issues)
+# Kho lỗi đã phát hiện (Detected-Issues)
 
 Nơi ghi lại các lỗi **KHÔNG phải logic firmware của mình** — mà đến từ toolchain,
 ngôn ngữ C, filesystem, phần cứng/MCU, hay khác biệt máy/môi trường. Đây là
@@ -9,7 +9,9 @@ remote**.
 > (local, git-ignore). Kho này chỉ chứa lỗi hệ thống/công cụ/phần cứng.
 
 ## Phân loại theo NGUỒN GỐC (`origin`, danh sách MỞ)
-| origin | Nghĩa | Thư mục |
+Các nhóm origin nằm gọn dưới thư mục trung gian **`categories-by-origin/`**:
+
+| origin | Nghĩa | Thư mục (trong `categories-by-origin/`) |
 |--------|-------|---------|
 | `toolchain` | IAR EWARM: compiler / linker / IDE | `toolchain-iar/` |
 | `language` | C / preprocessor / thư viện chuẩn | `language-c/` |
@@ -32,7 +34,8 @@ Ví dụ: `KI-IAR-0001`, `KI-ENV-0002`, `KI-HW-0003`.
 | `error.log` | Output **NGUYÊN VĂN** của công cụ (không sửa) |
 | `refs/<tên-tài-liệu>.md` | Mỗi tài liệu hãng 1 file, **đặt tên theo tài liệu**: định danh + trích đoạn + liên hệ bug + snippet/vị trí |
 
-Copy `_TEMPLATE/` để tạo entry mới.
+Copy `_TEMPLATE/` (ở gốc kho) để tạo entry mới, đặt vào
+`categories-by-origin/<nhóm-origin>/KI-<...>__slug/`.
 
 ## Quy ước
 - **Song ngữ:** phần phân tích = tiếng Việt; `error.log` + trích đoạn hãng = **nguyên văn**.
@@ -42,5 +45,5 @@ Copy `_TEMPLATE/` để tạo entry mới.
 ## Danh mục lỗi
 | ID | Tiêu đề | origin | status |
 |----|---------|--------|--------|
-| [KI-IAR-0001](toolchain-iar/KI-IAR-0001__time-h-shadows-standard-header/) | `time.h` cục bộ bị `<time.h>` chuẩn che mất | toolchain, language | fixed |
-| [KI-ENV-0002](host-environment/KI-ENV-0002__rcc-init-not-found-identical-source/) | Cùng source, `RCC_Init` không tìm thấy trên 1 máy | host-environment, toolchain | open |
+| [KI-IAR-0001](categories-by-origin/toolchain-iar/KI-IAR-0001__time-h-shadows-standard-header/) | `time.h` cục bộ bị `<time.h>` chuẩn che mất | toolchain, language | fixed |
+| [KI-ENV-0002](categories-by-origin/host-environment/KI-ENV-0002__rcc-init-not-found-identical-source/) | Cùng source, `RCC_Init` không tìm thấy trên 1 máy | host-environment, toolchain | open |

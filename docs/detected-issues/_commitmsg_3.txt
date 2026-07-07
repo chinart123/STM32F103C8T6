@@ -1,0 +1,31 @@
+§3 docs: restructure known-issues -> detected-issues, group by origin
+
+Rename the catalogue "known-issues" -> "detected-issues" (semantics: issues we
+actually hit and recorded, not a generic known-issues list), and gather every
+root-cause origin group under one intermediate folder "categories-by-origin/",
+separating the classified entries from the top-level scaffolding
+(README + _TEMPLATE).
+
+  docs/detected-issues/
+    README.md
+    _TEMPLATE/                       (single shared template, for now)
+    categories-by-origin/
+      toolchain-iar/    KI-IAR-0001__time-h-shadows-standard-header/
+      host-environment/ KI-ENV-0002__rcc-init-not-found-identical-source/
+
+All entries moved with `git mv`, so history is preserved. README paths and the
+catalogue links were updated; the bug entries themselves are byte-for-byte
+unchanged. One _TEMPLATE kept at the root (YAGNI) — split it per-origin later,
+once an origin grows its own distinct form or reaches several entries.
+
+Commit-message convention (this very file, IS this commit's message via
+`git commit -F`): message files are numbered PER BRANCH with the initial import
+as section §0, counting up §1, §2, §3... on the branch you stand on (no zigzag
+across branches). Main uses `_commitmsg_<n>.txt`; the notes branch uses
+`_note_commitmsg_<n>.txt`, so the two never collide by number. Every commit
+subject carries the matching "§<n>" marker for quick scanning in `git log`.
+The earlier main commits (§1 drivers, §2 KB-add) predate this file and were
+NOT backfilled — history stays append-only.
+
+Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015bVVTcVownUaf49Gk8wPYL
