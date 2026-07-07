@@ -1,0 +1,16 @@
+id: KI-GIT-0003
+title: 'URL remote kẹt tên cũ (108) sau khi đổi tên repo GitHub thành 103'
+origin: [vcs-git]                        # Git/GitHub — công cụ quản lý phiên bản; danh sách origin MỞ
+tool: { name: 'Git + GitHub', version: '' }
+codes: []                                # git không có mã lỗi; dấu hiệu = "This repository moved"
+phase: [push]                            # xảy ra lúc git push (ngoài chu trình build firmware)
+severity: warning                        # push vẫn chạy nhờ redirect; rủi ro TIỀM ẨN nếu tên cũ bị chiếm
+status: fixed
+novelty: common                          # gotcha git phổ biến
+references_found: yes
+timeline:
+  discovered_at: '2026-07-08 (khi push main §1/§2/§3; giờ cụ thể chưa ghi lại)'
+  resolved_at:   '2026-07-08 (git remote set-url về 103, fetch sạch)'
+  documented_at: '2026-07-08'
+fixed_by: 'git remote set-url origin https://github.com/chinart123/STM32F103C8T6.git'
+tags: [git, github, remote-url, repository-rename, redirect, local-config-vs-server-state]

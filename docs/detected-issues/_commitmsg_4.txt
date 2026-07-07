@@ -1,0 +1,24 @@
+§4 docs(detected-issues): add KI-GIT-0003 — stale remote URL after GitHub rename
+
+New known-issue entry under a new origin category `vcs-git` (Git/GitHub version
+control), promoted from a local scratch explainer.
+
+KI-GIT-0003: after the GitHub repo was renamed 108 -> 103, the local `.git/config`
+remote URL stayed on the old name (108). Pushes kept working only because GitHub
+redirects the old name ("This repository moved…"), which hid the mismatch and
+carries a latent risk (the redirect breaks if the old name is ever reclaimed).
+Root cause: renaming a repo on GitHub does NOT update any local clone's
+`.git/config`. Fixed with `git remote set-url origin …103….git`; fetch now clean.
+
+Contents:
+- categories-by-origin/vcs-git/KI-GIT-0003__…/ : README (Vietnamese analysis),
+  meta.yml, verbatim error.log (the real push + remote -v + fix session),
+  refs/ (git-remote docs + GitHub renaming docs).
+- README.md: added the `vcs-git` origin row + the catalogue entry; ID example
+  updated to KI-GIT-0003.
+
+§-section convention: this file `_commitmsg_4.txt` IS this commit's message
+(`git commit -F`); main numbering continues §4 after §3.
+
+Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015bVVTcVownUaf49Gk8wPYL

@@ -1,0 +1,21 @@
+# Phiên push main §1/§2/§3 lên remote — 2026-07-08 (output nguyên văn, không sửa)
+
+$ git push origin main
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/chinart123/STM32F103C8T6.git
+To https://github.com/chinart123/STM32F108C8T6.git
+   19597d8..abd5f43  main -> main
+
+$ git remote -v
+origin	https://github.com/chinart123/STM32F108C8T6.git (fetch)
+origin	https://github.com/chinart123/STM32F108C8T6.git (push)
+
+# ---- Sửa ----
+$ git remote set-url origin https://github.com/chinart123/STM32F103C8T6.git
+
+$ git remote -v
+origin	https://github.com/chinart123/STM32F103C8T6.git (fetch)
+origin	https://github.com/chinart123/STM32F103C8T6.git (push)
+
+$ git fetch origin
+# (không còn dòng "This repository moved" -> đã sạch)

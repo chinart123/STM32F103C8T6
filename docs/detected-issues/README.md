@@ -1,9 +1,9 @@
 # Kho lỗi đã phát hiện (Detected-Issues)
 
 Nơi ghi lại các lỗi **KHÔNG phải logic firmware của mình** — mà đến từ toolchain,
-ngôn ngữ C, filesystem, phần cứng/MCU, hay khác biệt máy/môi trường. Đây là
-**kiến thức tái dùng** cho mọi project cùng công cụ, nên được **version + push lên
-remote**.
+ngôn ngữ C, filesystem, phần cứng/MCU, khác biệt máy/môi trường, hay công cụ quản lý
+phiên bản (git/GitHub). Đây là **kiến thức tái dùng** cho mọi project cùng công cụ,
+nên được **version + push lên remote**.
 
 > Lỗi **logic firmware** ("bug tự hành") ở chỗ khác: `Log-and-Report-writing-tools/logs/bug_log.md`
 > (local, git-ignore). Kho này chỉ chứa lỗi hệ thống/công cụ/phần cứng.
@@ -18,13 +18,14 @@ Các nhóm origin nằm gọn dưới thư mục trung gian **`categories-by-ori
 | `filesystem` | hoa/thường tên file, UTF-8, đường dẫn | `filesystem-encoding/` |
 | `hardware` | MCU/silicon: cùng code chip này chạy chip kia không; errata | `hardware-mcu/` |
 | `host-environment` | khác máy/OS, khác phiên bản tool, artifact/cache bẩn | `host-environment/` |
+| `vcs-git` | Git / GitHub: URL remote, đổi tên/redirect, config local vs server | `vcs-git/` |
 
 Danh sách này **mở** — gặp loại mới thì thêm thư mục + hàng ở đây. Một lỗi có thể
 mang **nhiều `origin`** (đa tag trong `meta.yml`).
 
 ## Mã định danh
 `KI-<CÔNG_CỤ|MIỀN>-<NNNN>` + slug mô tả. Đánh số **tăng dần toàn kho**.
-Ví dụ: `KI-IAR-0001`, `KI-ENV-0002`, `KI-HW-0003`.
+Ví dụ: `KI-IAR-0001`, `KI-ENV-0002`, `KI-GIT-0003`.
 
 ## Mỗi lỗi = 1 thư mục, nhiều loại file
 | File | Vai trò |
@@ -47,3 +48,4 @@ Copy `_TEMPLATE/` (ở gốc kho) để tạo entry mới, đặt vào
 |----|---------|--------|--------|
 | [KI-IAR-0001](categories-by-origin/toolchain-iar/KI-IAR-0001__time-h-shadows-standard-header/) | `time.h` cục bộ bị `<time.h>` chuẩn che mất | toolchain, language | fixed |
 | [KI-ENV-0002](categories-by-origin/host-environment/KI-ENV-0002__rcc-init-not-found-identical-source/) | Cùng source, `RCC_Init` không tìm thấy trên 1 máy | host-environment, toolchain | open |
+| [KI-GIT-0003](categories-by-origin/vcs-git/KI-GIT-0003__stale-remote-url-after-github-rename/) | URL remote kẹt tên cũ (108) sau khi đổi tên repo GitHub (103) | vcs-git | fixed |
