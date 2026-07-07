@@ -1,0 +1,200 @@
+#include <stm32f103c8t6.h>
+/*@@
+i2c_v3: Bị mất chữ dòng 2 LCD 16x2
+GND (LCD) <--> G (GND) trên STM32
+VCC (LCD) <--> 5V trên STM32 (Lấy nguồn từ cổng USB)
+SDA (LCD) <--> PB7 (Chân I2C1_SDA mặc định)
+SCL (LCD) <--> PB6 (Chân I2C1_SCL mặc định)
+@@*/
+// ==========================================================
+// CẤU HÌNH & BIẾN TOÀN CỤC
+// ==========================================================
+#define I2C_ADDR        0x27  // Địa chỉ bạn vừa tìm được
+#define BUFFER_SIZE     128   // Bộ đệm chứa lệnh LCD
+
+// Các bit điều khiển PCF8574
+#define LCD_BACKLIGHT   0x08
+#define LCD_EN          0x04
+#define LCD_RS          0x01
+
+// Biến quản lý Buffer (volatile là bắt buộc khi dùng ngắt)
+volatile unsigned char TxBuffer[BUFFER_SIZE];
+volatile int TxIndex = 0;   // Vị trí đang gửi
+volatile int TxLength = 0;  // Tổng số byte cần gửi
+volatile int I2C_State = 0; // 0: Rảnh, 1: Bận
+
+// ==========================================================
+// HÀM DELAY (ĐÃ SỬA LỖI OPTIMIZATION)
+// ==========================================================
+void Delay_ms(unsigned long ms) {
+    // Thêm 'volatile' để Compiler không xóa vòng lặp này
+    for(volatile unsigned long i = 0; i < ms; i++) {
+        for(volatile unsigned long j = 0; j < 500; j++); 
+    }
+}
+
+// ==========================================================
+// TRÌNH PHỤC VỤ NGẮT (ISR)
+// ==========================================================
+void I2C1_EV_IRQHandler() {
+    volatile unsigned int sr1 = I2C1.SR1.REG;
+    volatile unsigned int sr2 = I2C1.SR2.REG; // Đọc SR2 để sẵn sàng
+
+    // 1. Gửi xong Start (SB=1) -> Gửi Địa chỉ
+    if (sr1 & 1) {
+        I2C1.DR = (I2C_ADDR << 1); // Gửi địa chỉ + Write(0)
+    }
+    
+    // 2. Gửi xong Địa chỉ (ADDR=1) -> Gửi byte đầu tiên
+    else if (sr1 & 2) {
+        // Đã đọc SR2 ở trên để xóa cờ ADDR
+        TxIndex = 0;
+        if (TxLength > 0) I2C1.DR = TxBuffer[TxIndex++];
+        else I2C1.CR1.REG |= (1 << 9); // Stop nếu rỗng
+    }
+    
+    // 3. Gửi xong 1 Byte (BTF=1) -> Gửi tiếp hoặc Stop
+    else if (sr1 & (1 << 2)) {
+        if (TxIndex < TxLength) {
+            I2C1.DR = TxBuffer[TxIndex++]; // Gửi tiếp
+        } else {
+            I2C1.CR1.REG |= (1 << 9); // Gửi STOP
+            
+            // Tắt ngắt để CPU nghỉ
+            I2C1.CR2.REG &= ~((1 << 9) | (1 << 10)); // Tắt ITEVT, ITBUF
+            I2C_State = 0; // Báo cáo đã rảnh
+        }
+    }
+}
+
+// Hàm xử lý lỗi (Bắt buộc phải có để không treo)
+void I2C1_ER_IRQHandler() {
+    if (I2C1.SR1.REG & (1 << 10)) { // Lỗi AF (Không ai trả lời)
+        I2C1.SR1.REG &= ~(1 << 10); // Xóa cờ lỗi
+        I2C1.CR1.REG |= (1 << 9);   // Gửi Stop
+        I2C_State = 0;
+    }
+}
+
+// ==========================================================
+// CÁC HÀM GIAO TIẾP
+// ==========================================================
+void NVIC_Config() {
+    // Bật ngắt I2C1 Event (Vị trí 31) và Error (Vị trí 32)
+    *((volatile unsigned long *)0xE000E100) = (1 << 31); 
+    *((volatile unsigned long *)0xE000E104) = (1 << 0);
+}
+
+void I2C1_Init() {
+    RCC.APB2_ENR.REG |= (1 << 3);  // GPIOB
+    RCC.APB1_ENR.REG |= (1 << 21); // I2C1
+    
+    // Reset & Cấu hình PB6, PB7 AF Open-Drain
+    GPIOB.CRL.REG &= ~(0xFF << 24); 
+    GPIOB.CRL.REG |=  (0xFF << 24); 
+
+    I2C1.CR2.REG  = 8;      // 8MHz
+    I2C1.CCR.REG  = 40;     // 100kHz Standard
+    I2C1.TRISE = 9;     
+    I2C1.CR1.REG |= 1;  // PE Enable
+    
+    NVIC_Config();
+}
+
+// Kích hoạt gửi Buffer qua ngắt
+void I2C_FlushBuffer() {
+    // Đợi nếu đang bận gửi gói trước (Blocking nhẹ để an toàn)
+    while (I2C_State == 1); 
+    
+    I2C_State = 1; // Đánh dấu bận
+    
+    // Bật ngắt Sự kiện & Buffer -> CPU sẽ nhảy vào ISR
+    I2C1.CR2.REG |= (1 << 9) | (1 << 10); 
+    // Tạo Start
+    I2C1.CR1.REG |= (1 << 8); 
+}
+
+// ==========================================================
+// LOGIC LCD (Đóng gói vào Buffer)
+// ==========================================================
+// Đẩy 1 byte vào hàng đợi
+void Buffer_Push(unsigned char data) {
+    if (TxLength < BUFFER_SIZE) {
+        TxBuffer[TxLength++] = data;
+    }
+}
+
+// Tạo xung Enable ảo trong Buffer
+void LCD_Buffer_Pulse(unsigned char data) {
+    Buffer_Push(data | LCD_EN);  // E = 1
+    Buffer_Push(data & ~LCD_EN); // E = 0
+}
+
+// Tách 4-bit
+void LCD_Send_To_Buffer(unsigned char val, unsigned char mode) {
+    unsigned char high = val & 0xF0;
+    unsigned char low  = (val << 4) & 0xF0;
+    unsigned char params = LCD_BACKLIGHT | (mode ? LCD_RS : 0);
+
+    LCD_Buffer_Pulse(high | params);
+    LCD_Buffer_Pulse(low | params);
+}
+
+void LCD_Command(unsigned char cmd) {
+    // Reset buffer để gửi gói lệnh mới
+    TxLength = 0; 
+    LCD_Send_To_Buffer(cmd, 0);
+    I2C_FlushBuffer(); 
+}
+
+void LCD_Data(unsigned char data) {
+    // Reset buffer để gửi gói dữ liệu mới
+    TxLength = 0;
+    LCD_Send_To_Buffer(data, 1);
+    I2C_FlushBuffer();
+}
+
+void LCD_Init() {
+    Delay_ms(50); // Đã có volatile, delay chuẩn hơn
+    
+    // Khởi tạo thủ công (Reset LCD)
+    TxLength = 0;
+    LCD_Buffer_Pulse(0x30 | LCD_BACKLIGHT); 
+    LCD_Buffer_Pulse(0x30 | LCD_BACKLIGHT);
+    LCD_Buffer_Pulse(0x30 | LCD_BACKLIGHT);
+    LCD_Buffer_Pulse(0x20 | LCD_BACKLIGHT);
+    I2C_FlushBuffer(); 
+    Delay_ms(10); // Đợi LCD xử lý
+
+    LCD_Command(0x28); // 4-bit, 2 dòng
+    LCD_Command(0x0C); // Màn hình ON
+    LCD_Command(0x06); // Tăng con trỏ
+    LCD_Command(0x01); // Xóa màn hình
+    Delay_ms(5); 
+}
+
+void LCD_Print(char *str) {
+    while (*str) {
+        LCD_Data(*str++);
+        // Delay cực nhỏ để tránh nhồi Buffer quá nhanh làm LCD bị nghẹn
+        for(volatile int i=0; i<500; i++); 
+    }
+}
+
+// ==========================================================
+// MAIN LOOP
+// ==========================================================
+void main() {
+    I2C1_Init();
+    LCD_Init();
+
+    LCD_Print(" Interrupt Mode "); // Chữ sẽ hiện đầy đủ
+    
+    LCD_Command(0xC0); // Xuống dòng
+    LCD_Print("  Hello STM32!  ");
+
+    while(1) {
+        // CPU rảnh rỗi, có thể làm việc khác ở đây
+        // Ví dụ: Nháy LED báo hiệu hệ thống đang sống
+    }
+}

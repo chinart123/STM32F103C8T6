@@ -1,0 +1,95 @@
+#include <stm32f103c8t6.h>
+#include <advanced_timer.h>
+void TIM1_UP_IRQHandler()
+{
+  // Chỉ xóa đúng cờ Update, giữ an toàn cho các cờ khác
+  TIM1.SR.BITS.UIF = 0; 
+}
+
+void main()
+{
+  RCC.APB2_ENR.BITS.TIM1 = 1; // Cấp xung cho TIM1
+  
+  // Cấu hình thời gian (1ms)
+  // Set PSC về 0 để nó chạy sát đít với timer nhất. 
+  // số càng to thì càng chậm
+  TIM1.PSC.BITS.b0 = 0;
+  TIM1.PSC.BITS.b1 = 0;
+  TIM1.PSC.BITS.b2 = 0;
+  TIM1.PSC.BITS.b3 = 0;
+  TIM1.PSC.BITS.b4 = 0;
+  TIM1.PSC.BITS.b5 = 0;
+  TIM1.PSC.BITS.b6 = 0;
+  TIM1.PSC.BITS.b7 = 0;
+  TIM1.PSC.BITS.b8 = 0;
+  TIM1.PSC.BITS.b9 = 0;
+  TIM1.PSC.BITS.b10 = 0;
+  TIM1.PSC.BITS.b11 = 0;
+  TIM1.PSC.BITS.b12 = 0;
+  TIM1.PSC.BITS.b13 = 0;
+  TIM1.PSC.BITS.b14 = 0;
+  TIM1.PSC.BITS.b15 = 0;
+
+    //Cách 1:
+//  // Set ARR = 7999 bằng tay (0001 1111 0011 1111)
+//    TIM1.ARR.BITS.b0 = 1;
+//    TIM1.ARR.BITS.b1 = 1;
+//    TIM1.ARR.BITS.b2 = 1;
+//    TIM1.ARR.BITS.b3 = 1;
+//    TIM1.ARR.BITS.b4 = 1;
+//    TIM1.ARR.BITS.b5 = 1;
+//    TIM1.ARR.BITS.b6 = 0; // Bit 6 tắt
+//    TIM1.ARR.BITS.b7 = 0; // Bit 7 tắt
+//    TIM1.ARR.BITS.b8 = 1;
+//    TIM1.ARR.BITS.b9 = 1;
+//    TIM1.ARR.BITS.b10 = 1;
+//    TIM1.ARR.BITS.b11 = 1;
+//    TIM1.ARR.BITS.b12 = 1;
+    //Cách 2:
+//  TIM1.ARR.REG = BIT0 | BIT1 | BIT2 | BIT3 | BIT4 | BIT5 |
+//                   BIT8 | BIT9 | BIT10 | BIT11 | BIT12;
+    //Cách 3:
+  TIM1.ARR.REG = 7999;
+  
+    /*Cách ăn lồn, muốn viết thì vào <advanced_timer.h>
+      sửa cái đống union của ARR
+      thành 1 dòng unsigned long ARR;
+   TIM1.ARR = 7999;
+  */
+  
+  
+  // --- ĐÂY LÀ CHỖ BẠN THẮC MẮC ---
+  // Chọn Update (UIE) vì ta muốn ngắt mỗi khi đếm xong (tràn).
+  // Tuyệt đối không dùng BIE ở đây.
+  TIM1.DIER.BITS.UIE = 1; 
+  
+  /* Cho phép NVIC ở bit số 25 của thanh ghi NVIC 
+  //NVIC Vector table
+  |Position |priority  |type of priority |Acronym       |Description      |Address
+  |25       |32        |settable         |TIM1_UP TIM1  |Update interrupt |0x0000_00A4
+
+  NVIC's base address: 0xE000E100
+  TIM1's position: 25th in vector table
+
+  ***Interrupt set-enable registers (NVIC_ISERx)
+      Write:
+      0: No effect
+      1: Enable interrupt
+  ***
+
+
+  */
+  *((unsigned long*)0xE000E100) = BIT25; 
+  
+  // Cấu hình CR1
+  TIM1.CR1.REG = BIT7 | BIT2 | BIT0; 
+  /* Hoặc nếu cấu trúc struct của bạn hỗ trợ, nên viết tách ra cho dễ hiểu:
+     TIM1.CR1.BIT.ARPE = 1; // Bit 7
+     TIM1.CR1.BIT.URS  = 1; // Bit 2
+     TIM1.CR1.BIT.CEN  = 1; // Bit 0
+  */
+
+  while(1)
+  {
+  }
+}

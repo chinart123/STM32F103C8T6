@@ -1,0 +1,4 @@
+Update các file <general_timer>, < basic_timer.h>, <advanced_timer.h> nếu như muốn dùng syntax theo kiểu này.
+TIM4.PSC.REG = 7999;  Thay vì TIM4.PSC = 7999;
+
+

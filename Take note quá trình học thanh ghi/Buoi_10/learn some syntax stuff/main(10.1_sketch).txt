@@ -1,0 +1,51 @@
+#include <stm32f103c8t6.h>
+
+void TIM1_UP_IRQHandler()
+{
+  TIM1.SR.REG = 0; 
+  //or we could write
+  //TIM1.SR.BITS.UIF = X; wrong shit could be
+}
+
+void main()
+{
+  RCC.APB2_ENR.BITS.TIM1 = 1;
+  
+  //TIM1 base clock = 8Mhz, ISR =1ms
+  TIM1.CR2.REG = 0; //turn off this reg since we don't need to use it
+  TIM1.SMCR.REG = 0;  //turn off this reg since we don't need to use it
+  /*Although we place a reset point here, 
+    but the interrupt will never be activated,
+    that means TIM1_UP_IRQHandler() can't be accessed
+    due to the lack of NVIC module
+  */
+  
+  TIM1.DIER.REG = BIT0; //to set BIE bit(bit 7 of TIMx_DIER reg) --> go into "Using the break function" part iin reference manual 
+  //or we could write
+  //TIM1.DIER.BITS.BIE = X; wrong shit could be
+  
+  
+  
+  //NVIC enable register UP
+  //point to the NVIC reg
+  //*((unsigned long*)0xE000E100) = BIT25; //uncomment this line to run activate NVIC module
+  
+  
+  
+  TIM1.ARR = 7999;
+  TIM1.CR1.REG = BIT7 | BIT2 | BIT0;
+  
+
+  while(1)
+  {
+  }
+}
+
+/*
+When an update event occurs, all the registers are updated and the update flag (UIF bit in
+TIMx_SR register) is set (depending on the URS bit):
+--------------------------------------------------------------------
+The break status flag (BIF bit in the TIMx_SR register) is set. An interrupt can be
+generated if the BIE bit in the TIMx_DIER register is set. A DMA request can be sent if
+the BDE bit in the TIMx_DIER register is set.
+*/

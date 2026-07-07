@@ -1,0 +1,27 @@
+#include <stm32f103c8t6.h>
+
+void TIM1_UP_IRQHandler()
+{
+    TIM1.SR.REG = 0;
+    GPIOB.ODR.BITS.b13 = !GPIOB.ODR.BITS.b13;
+}
+
+
+void main(){
+  //RCC for TIM1
+  RCC.APB2_ENR.BITS.TIM1 = 1;
+  
+  //TIM1 base clock  = 8Mhz, ISR = 1ms
+  TIM1.CR2.REG = 0;
+  TIM1.SMCR.REG = 0;
+  TIM1.DIER.REG = 0;
+  TIM1.ARR = 7999;
+  TIM1.CR1.REG = BIT7 | BIT2 | BIT0;
+  
+  //NVIC
+  *((unsigned long*)0xE000E100) = BIT25;
+  while(1)
+    
+  {
+  }
+}

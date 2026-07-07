@@ -1,0 +1,34 @@
+#include <rcc.h>
+#include <gpio.h>
+#include <led.h>
+#include <button.h>
+#include <flash.h>
+#include <bitband.h>
+void main() 
+{
+  FLASH.ACR.BITS.LATENCY = 2;
+  RCC.CR.BITS.HSE_ON = 1;
+  while( !RCC.CR.BITS.HSE_RDY);
+  RCC.CFGR.BITS.PLL_SRC = 1;
+  RCC.CFGR.BITS.PLL_MUL = 7;
+  RCC.CR.BITS.PLL_ON = 1;
+  while( !RCC.CR.BITS.PLL_RDY);
+  RCC.CFGR.BITS.SW = 2;
+  while( !(RCC.CFGR.BITS.SWS == 2));
+  //choosing SYSCLK to run the system
+  RCC.CFGR.BITS.MCO = 4;
+  //turn on clock for GPIOA
+  RCC.APB2_ENR.BITS.IOPA = 1;
+  //config GPIOA.b8 to take the MCO pin
+  GPIO_Mode(&GPIOA, 1UL << 8, GPIO_MODE_AF_OUTPUT_PUSHPULL_50MHz);
+  //turn on clock for GPIOB
+  RCC.APB2_ENR.BITS.IOPB = 1;
+  //config GPIOB.b12 to OUTPUT
+  GPIO_Mode(&GPIOB, 1UL << 12, GPIO_MODE_OUTPUT_PUSHPULL_10MHz);
+  while(1)
+  {
+    for( unsigned long i =0; i <500000; i++);
+    GPIOB_BITBAND.ODR.b12 = !GPIOB_BITBAND.ODR.b12;
+    //*BITBAND_PERIPHERAL_POINTER(&GPIOB.ODR, 12) =!(*BITBAND_PERIPHERAL_POINTER(&GPIOB.ODR, 12));
+  }
+}

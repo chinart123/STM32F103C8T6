@@ -1,0 +1,31 @@
+main(8.1).c: 
++ Blink led with default clock( HSI). Estimation the frequency of signal fall around 1ms( 8Mhz / 1000)
++ --> would be 8000
+
+main(8.2).c
++ Blink Led  PB12 with specific speed ( 25us or 1ms every blink)
++ use the magnitude of pulse to calculate the to define the length of expected signal.
+
+
+SysTick register(page 150)
+https://www.st.com/resource/en/programming_manual/pm0056-stm32f10xxx20xxx21xxxl1xxxx-cortexm3-programming-manual-stmicroelectronics.pdf
+
+
+main(8.3).c
++ ????? still not figure out what this file actually doing
++ the signal graph is illusatrate on youtube video.
++ can manual modified the address 0x05 to 0x03 if needed to see the variation pulse width 
+
+main(8.4). - not using LED, use servo motor to learn PWM
++ Servo motor dont have to be plugin into the STM32 pin, but logic analyzer have to.
++ Combine bitband to do the same thing
++ Using PB0, PB1, PB10, PB11 to activate servo
+
+
+main(8.5).c
++ work the same as main(8.4).c, 
+however main(8.5).c add 'void Setup(unsigned char ServoIndex, unsigned long Value )'
+--> allow user to control  multiple Servo with 1 function
+
+
+

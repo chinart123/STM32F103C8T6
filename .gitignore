@@ -1,0 +1,52 @@
+# ============================================================================
+#  .gitignore  —  STM32 bare-metal project
+#  Rule P4: AI machinery is LOCAL. GitHub only sees firmware + my notes.
+# ============================================================================
+
+# --- AI machinery: entirely local, NEVER published (tools + all outputs) ---
+Log-and-Report-writing-tools/
+
+# --- Per-brain shims: local (pure tool glue, no portfolio value) ---
+CLAUDE.md
+GEMINI.md
+# NOTE: AGENTS.md + STANDARD.md ARE published — they document the project.
+
+# --- throwaway planning scratch (kept off git; real plans stay versioned) ---
+scratch/
+
+# --- big vendor datasheets: local reference only (size + copyright) ---
+docs/datasheets/
+
+# --- IAR / Keil build artifacts (compiled junk, never source) ---
+**/Debug/
+**/Obj/
+**/Objects/
+**/Listings/
+**/Listing/
+**/List/
+**/Exe/
+**/settings/
+**/DebugConfig/
+*.dep
+*.o
+*.out
+*.d
+*.pbd
+*.pbi
+*.pbw
+*.map
+*.lst
+*.sfr
+*.wsdt
+*.dni
+*.dnx
+*.crun
+*.bak
+
+# --- OS junk ---
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# NOTE: docs/archive/ (the initial sketches + planning docs) IS versioned
+#       on purpose — files = truth (P2).

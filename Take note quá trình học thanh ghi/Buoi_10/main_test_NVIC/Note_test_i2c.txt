@@ -1,0 +1,88 @@
+PHẦN 1: NHẬT KÝ DEBUG & CHẠY THỬ I2C (Post-Mortem Analysis)
+Chúng ta đã trải qua 4 giai đoạn chiến đấu để đi đến thắng lợi cuối cùng:
+
+Giai đoạn 1: Kết nối & Build Code cơ bản (Polling)
+Mục tiêu: Hiển thị chữ lên màn hình bằng phương pháp hỏi vòng (Polling).
+
+Lỗi 1: Error[Pe154]: expression must have struct or union type.
+
+Nguyên nhân: Thư viện của thầy bạn định nghĩa CR2, CCR, DR là biến thường (unsigned long), trong khi code mẫu của tôi dùng cấu trúc Union (.REG).
+
+Cách Fix: Xóa đuôi .REG khi truy cập các thanh ghi này (Ví dụ: I2C1.DR = data; thay vì I2C1.DR.REG = data;).
+
+Lỗi 2: Code nạp xong, màn hình sáng nhưng không hiện chữ (Màn hình trắng/đen).
+
+Nguyên nhân: Sai địa chỉ I2C (Code để 0x3F nhưng phần cứng là 0x27) và chưa chỉnh biến trở tương phản.
+
+Cách Fix: Dùng code I2C Scanner để tìm ra địa chỉ chính xác là 0x27. Vặn biến trở sau lưng màn hình.
+
+Giai đoạn 2: Hiện tượng "Mất chữ" (Scan Foun...)
+Mục tiêu: In đầy đủ dòng chữ.
+
+Lỗi: Màn hình chỉ hiện một phần chữ, các ký tự bị nuốt mất.
+
+Nguyên nhân: Trình biên dịch (Compiler) IAR tối ưu hóa quá mức, tự động xóa bỏ vòng lặp Delay rỗng -> LCD bị "bội thực" dữ liệu vì nhận quá nhanh.
+
+Cách Fix: Thêm từ khóa volatile vào vòng lặp Delay (for(volatile unsigned long i...) để ép Compiler không được xóa nó.
+
+Giai đoạn 3: Nâng cấp lên Interrupt (Ngắt)
+Mục tiêu: Dùng ngắt để CPU rảnh tay, không dùng while đứng chờ.
+
+Lỗi: Chỉ hiện dòng 1 ("Interrupt Mode"), dòng 2 ("Hello STM32") biến mất.
+
+Nguyên nhân:
+
+Lỗi Đua xe (Race Condition): Hàm main gửi lệnh dòng 2 ngay khi Bus I2C vẫn đang bận gửi dòng 1 -> Lệnh Start mới bị phần cứng bỏ qua.
+
+LCD chậm chạp: Lệnh xuống dòng (0xC0) cần thời gian xử lý, nhưng ngắt bắn dữ liệu tiếp theo quá nhanh.
+
+Cách Fix:
+
+Thêm kiểm tra cờ BUSY (SR2) trong hàm I2C_FlushBuffer.
+
+Thêm Delay_ms(2) sau mỗi lệnh LCD_Command.
+
+
+PHẦN 2: I2C LÀ GÌ? CÓ GÌ KHÁC BIỆT?
+1. Chức năng & Vị trí trong Datasheet
+Chức năng: Nếu TIMER là "Đồng hồ bấm giờ" (nội bộ), thì I2C là "Điện thoại bàn" (giao tiếp ra ngoài). Nó giúp STM32 nói chuyện với các con chip khác chỉ bằng 2 sợi dây.
+
+Vị trí: Trong Reference Manual (RM0008), nó nằm ở mục 26. I2C Interface.
+
+Chân cẳng trên STM32F103C8T6:
+
+I2C1 (Mặc định - Hay dùng nhất):
+
+SCL (Clock): PB6
+
+SDA (Data): PB7
+
+I2C2:
+
+SCL: PB10
+
+SDA: PB11
+
+Lưu ý: Chân I2C phải cấu hình là Alternate Function Open-Drain (khác với UART hay SPI là Push-Pull).
+
+2. Phân loại I2C (Có giống Timer không?)
+Không giống Timer (chia cấp bậc Basic/General/Advanced), I2C trên STM32F103 là đồng cấp. I2C1 và I2C2 có tính năng y hệt nhau. Sự phân loại chủ yếu nằm ở Tốc độ:
+
+Standard Mode (Sm): 100 kHz (Chúng ta đang dùng cái này).
+
+Fast Mode (Fm): 400 kHz. (STM32F103 không hỗ trợ High-Speed Mode 3.4MHz).
+
+3. I2C điều khiển được những gì?
+Ngoài LCD, I2C là "vua" của thế giới cảm biến và IC phụ trợ:
+
+Cảm biến: Gia tốc/Giro (MPU6050 - trong Drone/Tay cầm game), Áp suất, Ánh sáng (BH1750), Nhiệt độ ẩm (SHT30).
+
+Bộ nhớ: EEPROM (AT24C32/64) để lưu dữ liệu khi mất điện.
+
+Đồng hồ: RTC rời (DS3231) cực chính xác.
+
+Màn hình: OLED 0.96 inch (SSD1306) cũng chạy I2C rất phổ biến.
+
+
+3. I2C điều khiển được những gì?Ngoài LCD, I2C là "vua" của thế giới cảm biến và IC phụ trợ:Cảm biến: Gia tốc/Giro (MPU6050 - trong Drone/Tay cầm game), Áp suất, Ánh sáng (BH1750), Nhiệt độ ẩm (SHT30).Bộ nhớ: EEPROM (AT24C32/64) để lưu dữ liệu khi mất điện.Đồng hồ: RTC rời (DS3231) cực chính xác.Màn hình: OLED 0.96 inch (SSD1306) cũng chạy I2C rất phổ biến.
+PHẦN 3: BẢNG SO SÁNH (TIMER vs UART vs I2C)

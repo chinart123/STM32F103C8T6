@@ -1,0 +1,22 @@
+-main(10.1_sketch).c
++ Look at the NVIC block diagram on the internet.
++ The NVIC module responsible for IRQ_Handler(interrupt request)
++ If we have an interrupt request from a peripheral(remember this shit is still on the board) 
+	without activating NVIC to handle interrupt on that register.
+	for example in this case:
+	//Interrupt need to be handled by NVIC
+	void TIM1_UP_IRQHandler(){
+	TIM1.SR.REG = 0;
+	}
+	
+	//Wake up interrupt of ISER0 reg, bit 25, which is TIM1_UP
+	*((unsigned long*)0xE000E100) = BIT25;
+	
+-main(10.1).c	
++Revise C struct and union
++Write multiple format to control reg 
++Can't make an element either number or struct
++To use each case , remember to edit <advanced_timer.h>
+
+
+	

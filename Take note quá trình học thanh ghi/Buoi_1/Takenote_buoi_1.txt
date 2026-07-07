@@ -1,0 +1,58 @@
+Buổi 1:
+Thắc mắc: STM8 là phiên bản gì?
+
+Đường dẫn add các file include:
+<rcc.h>
+D:\libraries\C&C++\Embedded_C99\Microcontroller\stm32f10x\driver\include
+
+<define.h>
+D:\libraries\C&C++\Embedded_C99\Microcontroller\0_common\include
+
+các file add trực tiếp vào đây nếu chưa có lúc đang làm việc
+D:\libraries\C&C++\Embedded_C99\Microcontroller\stm32f10x\test_lib\stm32f103c8t6\include
+
+
+
+
+A. Lỗi liên quan đến RCC
+1. Đường dẫn tải về
+Downloads\Libraries-20250820T153814Z-1-001\Libraries\C&C++\embedded_C99\Microcontroler\STM32F10x\drive\0_include\rcc.h
+2. Đường dẫn add vào
+D:\libraries\C&C++\Embedded_C99\Microcontroller\stm32f10x\test_lib\stm32f103c8t6\include\rcc.h
+
+B. Lỗi liên quan đến <define.h>, vì <rcc.h> có #include <define.h>
+1. Đường dẫn tải về
+Downloads\Libraries-20250820T153814Z-1-001\Libraries\C&C++\embedded_C99\Microcontroler\0_Common\0_include\define.h
+2. Đường dẫn add vào
+D:\libraries\C&C++\Embedded_C99\Microcontroller\0_common\include\define.h
+
+C. Lỗi thiếu declare rcc hoặc  #include <rcc.h>) +
+D. Sai tên parameter //RCC.APB2ENR.BITS.IOPBEN
+//RCC.APB2ENR.BITS.IOPBEN
+-Lí do:
+    + Thiếu #include <rcc.h>
+    + Thiếu #include <define.h>
+    +Sai tên:
+        .APB2ENR --> APB2_ENR
+        .IOPBEN  --> IOPB
+        
+Bước 1: Khai báo rcc 
+// Add this line after the GPIOB declaration in main.c
+// normally, there will a  system_stm32f10x.h or stm32f10x.h declare this RCC.
+// If we already include stm32f10x.h, there would be no need to write this line.
+__root __no_init RCC_TypeDef RCC @ 0x40021000;
+
+Bước 2: Sửa lại tên của 2 parameters //RCC.APB2ENR.BITS.IOPBEN
+        .APB2ENR --> APB2_ENR
+        .IOPBEN  --> IOPB
+        -->RCC.APB2_ENR.BITS.IOPB
+        . // or write RCC.APB2_ENR.REG |= (1 << 3); // IOPB is the third bit trong APB2_ENR
+        
+E. Sửa tên thanh ghi con của LCKR thành LCKK
+
+
+
+
+
+
+

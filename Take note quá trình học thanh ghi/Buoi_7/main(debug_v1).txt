@@ -1,0 +1,33 @@
+#include <rcc.h>
+#include <gpio.h>
+#include <bitband.h>
+// #include <led.h> // Tạm thời chưa cần dùng thư viện này để code gọn nhất
+// #include <flash.h> // Không cần dùng flash latency vì chạy tốc độ thấp (8MHz)
+
+void main() 
+{
+  // --- BỎ QUA PHẦN CẤU HÌNH HSE/PLL ĐỂ TRÁNH BỊ TREO ---
+  // Mặc định STM32 sẽ chạy HSI (8MHz)
+  
+  // 1. CẤU HÌNH CLOCK CHO GPIO
+  // Bật clock cho Port B (IOPB) và Port A (IOPA - nếu cần debug MCO)
+  RCC.APB2_ENR.BITS.IOPB = 1; 
+  
+  // 2. CẤU HÌNH CHÂN PB12 LÀ OUTPUT
+  GPIO_Mode(&GPIOB, 1UL << 12, GPIO_MODE_OUTPUT_PUSHPULL_10MHz);
+
+  // 3. VÒNG LẶP CHÍNH
+  while(1)
+  {
+    // Cách 1: Dùng Bit-band (Code của bạn đang muốn test cái này)
+    GPIOB_BITBAND.ODR.b12 = 0; // Sáng (nếu đấu Sink 3.3V) hoặc Tắt (nếu đấu Source GND)
+    
+    // Delay (Thêm volatile để chắc chắn không bị xóa)
+    for(volatile unsigned long i = 0; i < 200000; i++);
+
+    GPIOB_BITBAND.ODR.b12 = 1; // Đảo trạng thái
+    
+    // Delay
+    for(volatile unsigned long i = 0; i < 200000; i++);
+  }
+}

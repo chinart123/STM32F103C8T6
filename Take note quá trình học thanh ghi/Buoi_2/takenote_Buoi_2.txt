@@ -1,0 +1,5 @@
+Buổi 2:
+- Thay vì dùng struct như trong main.c thì main(1).c 
+-> Dùng __VA_ARGS__(trong define.h) kết hợp với union( trong rcc.h là BUNION)
+-> Mã code trong void main() vẫn giữ nguyên dù các struct đã được cấu hình
+

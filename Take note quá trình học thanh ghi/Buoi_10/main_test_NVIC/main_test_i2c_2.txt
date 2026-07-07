@@ -1,0 +1,231 @@
+#include <stm32f103c8t6.h>
+
+
+/*@@
+i2c_v2: Lỗi in thiếu kí tự LCD 16x2
+GND (LCD) <--> G (GND) trên STM32
+VCC (LCD) <--> 5V trên STM32 (Lấy nguồn từ cổng USB)
+SDA (LCD) <--> PB7 (Chân I2C1_SDA mặc định)
+SCL (LCD) <--> PB6 (Chân I2C1_SCL mặc định)
+@@*/
+// ==========================================================
+// CẤU HÌNH & BIẾN TOÀN CỤC
+// ==========================================================
+#define I2C_ADDR        0x27  // Địa chỉ bạn vừa tìm được
+#define BUFFER_SIZE     256   // Kích thước bộ đệm chứa lệnh LCD
+
+// Các bit điều khiển PCF8574
+#define LCD_BACKLIGHT   0x08
+#define LCD_EN          0x04
+#define LCD_RS          0x01
+
+// Biến quản lý truyền tin bằng Ngắt
+volatile unsigned char TxBuffer[BUFFER_SIZE];
+volatile int TxIndex = 0;
+volatile int TxLength = 0;
+volatile int I2C_State = 0; // 0: Idle, 1: Busy
+
+// ==========================================================
+// HÀM DELAY & NVIC SETUP
+// ==========================================================
+void Delay_ms(unsigned long ms) {
+    for(unsigned long i = 0; i < ms; i++) {
+        for(unsigned long j = 0; j < 500; j++); 
+    }
+}
+
+void NVIC_Config() {
+    // I2C1 Event nằm ở vị trí 31 trong bảng Vector
+    // I2C1 Error nằm ở vị trí 32
+    
+    // Bật ngắt I2C1 Event (IRQ 31) -> Nằm ở ISER0 (Bit 31)
+    *((volatile unsigned long *)0xE000E100) = (1 << 31);
+    
+    // Bật ngắt I2C1 Error (IRQ 32) -> Nằm ở ISER1 (Bit 0)
+    *((volatile unsigned long *)0xE000E104) = (1 << 0);
+}
+
+// ==========================================================
+// TRÌNH PHỤC VỤ NGẮT (ISR) - "TRÁI TIM" CỦA CODE NÀY
+// ==========================================================
+// Khi có sự kiện (Start xong, Gửi xong, v.v.), CPU nhảy vào đây
+void I2C1_EV_IRQHandler() {
+    unsigned int sr1 = I2C1.SR1.REG;
+    unsigned int sr2 = I2C1.SR2.REG; // Đọc SR2 để sẵn sàng xóa cờ
+
+    // 1. Sự kiện: Đã gửi START bit thành công (SB = 1)
+    if (sr1 & 1) {
+        // Gửi địa chỉ thiết bị + Bit Write (0)
+        I2C1.DR = (I2C_ADDR << 1);
+    }
+    
+    // 2. Sự kiện: Đã gửi ĐỊA CHỈ thành công (ADDR = 1)
+    else if (sr1 & 2) {
+        // Cần đọc SR1 rồi SR2 để xóa cờ ADDR -> Đã đọc ở đầu hàm
+        // Sẵn sàng gửi byte dữ liệu đầu tiên
+        if (TxLength > 0) {
+            I2C1.DR = TxBuffer[TxIndex++];
+        } else {
+            // Không có gì để gửi? Stop luôn
+            I2C1.CR1.REG |= (1 << 9);
+        }
+    }
+    
+    // 3. Sự kiện: Byte dữ liệu đã truyền xong (BTF = 1)
+    // (Dùng BTF an toàn hơn TxE khi xử lý ngắt cuối cùng)
+    else if (sr1 & (1 << 2)) {
+        if (TxIndex < TxLength) {
+            // Vẫn còn hàng trong kho -> Gửi tiếp
+            I2C1.DR = TxBuffer[TxIndex++];
+        } else {
+            // Hết hàng -> Gửi STOP
+            I2C1.CR1.REG |= (1 << 9);
+            
+            // Tắt ngắt Buffer & Event để CPU nghỉ ngơi
+            I2C1.CR2.REG &= ~(1 << 10); // Tắt ITBUF
+            I2C1.CR2.REG &= ~(1 << 9);  // Tắt ITEVT
+            
+            // Báo cáo trạng thái rảnh rỗi
+            I2C_State = 0; 
+        }
+    }
+}
+
+// Hàm xử lý lỗi (nếu LCD không phản hồi hoặc nhiễu)
+void I2C1_ER_IRQHandler() {
+    unsigned int sr1 = I2C1.SR1.REG;
+    
+    // Nếu lỗi Acknowledge Failure (AF) - Không ai trả lời
+    if (sr1 & (1 << 10)) {
+        I2C1.SR1.REG &= ~(1 << 10); // Xóa cờ lỗi
+        I2C1.CR1.REG |= (1 << 9);   // Gửi Stop
+        I2C_State = 0;              // Reset trạng thái
+    }
+}
+
+// ==========================================================
+// CÁC HÀM GIAO TIẾP (Kích hoạt Ngắt)
+// ==========================================================
+void I2C1_Init() {
+    RCC.APB2_ENR.REG |= (1 << 3);  // GPIOB
+    RCC.APB1_ENR.REG |= (1 << 21); // I2C1
+    
+    GPIOB.CRL.REG &= ~(0xFF << 24); 
+    GPIOB.CRL.REG |=  (0xFF << 24); 
+
+    I2C1.CR2.REG  = 8;      
+    I2C1.CCR.REG  = 40;     
+    I2C1.TRISE = 9;     
+    I2C1.CR1.REG |= 1;  // PE Enable
+    
+    NVIC_Config();      // Cấu hình NVIC
+}
+
+// Hàm này không gửi ngay, mà chỉ kích hoạt quá trình gửi
+void I2C_FlushBuffer() {
+    // Chờ nếu I2C đang bận việc cũ
+    while (I2C_State == 1);
+    
+    TxIndex = 0;      // Reset vị trí đọc
+    I2C_State = 1;    // Đánh dấu là Bận
+    
+    // Bật ngắt Sự kiện (ITEVT) và Ngắt đệm (ITBUF)
+    // CPU sẽ nhảy vào ISR ngay khi có sự kiện Start
+    I2C1.CR2.REG |= (1 << 9) | (1 << 10); 
+    
+    // Tạo Start -> Kích hoạt chuỗi domino ngắt
+    I2C1.CR1.REG |= (1 << 8); 
+}
+
+// ==========================================================
+// LOGIC LCD (Đóng gói dữ liệu vào Buffer)
+// ==========================================================
+// Hàm thêm 1 byte vào Buffer chờ gửi
+void Buffer_Push(unsigned char data) {
+    if (TxLength < BUFFER_SIZE) {
+        TxBuffer[TxLength++] = data;
+    }
+}
+
+// Tạo xung Enable ảo trong Buffer
+void LCD_Buffer_Pulse(unsigned char data) {
+    Buffer_Push(data | LCD_EN);  // Bật E
+    Buffer_Push(data & ~LCD_EN); // Tắt E
+}
+
+// Tách 4-bit và ném vào Buffer
+void LCD_Send_To_Buffer(unsigned char val, unsigned char mode) {
+    unsigned char high = val & 0xF0;
+    unsigned char low  = (val << 4) & 0xF0;
+    unsigned char params = LCD_BACKLIGHT | (mode ? LCD_RS : 0);
+
+    LCD_Buffer_Pulse(high | params);
+    LCD_Buffer_Pulse(low | params);
+}
+
+void LCD_Command(unsigned char cmd) {
+    TxLength = 0; // Reset buffer cho lệnh mới
+    LCD_Send_To_Buffer(cmd, 0);
+    I2C_FlushBuffer(); // Kích hoạt gửi ngắt ngay
+}
+
+void LCD_Data(unsigned char data) {
+    // Với Data, ta có thể gom nhiều chữ rồi gửi 1 lần cũng được
+    // Nhưng để đơn giản, ta gửi từng ký tự
+    TxLength = 0;
+    LCD_Send_To_Buffer(data, 1);
+    I2C_FlushBuffer();
+}
+
+void LCD_Init() {
+    Delay_ms(50);
+    
+    // Khởi tạo 4-bit mode (Thủ công)
+    TxLength = 0;
+    LCD_Buffer_Pulse(0x30 | LCD_BACKLIGHT); 
+    LCD_Buffer_Pulse(0x30 | LCD_BACKLIGHT);
+    LCD_Buffer_Pulse(0x30 | LCD_BACKLIGHT);
+    LCD_Buffer_Pulse(0x20 | LCD_BACKLIGHT);
+    I2C_FlushBuffer(); 
+    Delay_ms(10); // Cần delay giữa các lệnh init
+
+    LCD_Command(0x28); 
+    LCD_Command(0x0C); 
+    LCD_Command(0x06); 
+    LCD_Command(0x01); 
+    Delay_ms(5); 
+}
+
+void LCD_Print(char *str) {
+    while (*str) {
+        // Lưu ý: Nếu gửi quá nhanh, I2C Interrupt chạy không kịp
+        // Ta thêm delay nhỏ hoặc kiểm tra cờ Busy trong hàm Flush
+        LCD_Data(*str++);
+        // Delay rất nhỏ để đảm bảo buffer không bị ghi đè quá nhanh
+        for(int i=0;i<500;i++); 
+    }
+}
+
+// ==========================================================
+// MAIN
+// ==========================================================
+void main() {
+    I2C1_Init();
+    LCD_Init();
+
+    LCD_Print("STM32 Interrupt");
+    
+    LCD_Command(0xC0); // Dòng 2
+    LCD_Print("Mode: I2C IRQ");
+
+    int count = 0;
+    while(1) {
+        // Trong khi I2C đang bắn dữ liệu ở nền (Background)
+        // Main loop vẫn có thể làm việc khác (ví dụ nháy LED)
+        
+        // Demo: Nháy LED PC13 (nếu có)
+        // (Bạn tự thêm code GPIO PC13 vào đây nếu thích)
+        
+        Delay_ms(100);
+    }
+}

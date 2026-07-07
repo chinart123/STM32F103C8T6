@@ -1,0 +1,79 @@
+#include <stm32f103c8t6.h>
+
+// --- KHAI BÁO BIẾN TOÀN CỤC (Để Live Watch soi được) ---
+// Đưa ra ngoài main() là Debugger bắt dính ngay
+int brightness = 0;
+int step = 2; // Bước nhảy nhỏ thôi cho mịn (từ 10 giảm xuống 2)
+
+void main()
+{
+  // ==========================================================
+  // BƯỚC 1: CẤP CLOCK
+  // ==========================================================
+  // Bật Clock cho GPIOB (để dùng chân PB6) và AFIO (chức năng thay thế)
+  RCC.APB2_ENR.REG |= (1 << 3) | (1 << 0);
+  // Bật Clock cho TIM4
+  RCC.APB1_ENR.REG |= (1 << 2);
+
+  // ==========================================================
+  // BƯỚC 2: CẤU HÌNH CHÂN PB6 LÀ "ALTERNATE FUNCTION"
+  // ==========================================================
+  // Để TIM4 điều khiển được chân PB6, ta không để Mode Output thường.
+  // Ta phải để Mode: Alternate Function Push-Pull (AF_PP).
+  // PB6 nằm ở CRL (Bit 24-27).
+  // MODE = 11 (Output 50MHz), CNF = 10 (AF Push-Pull) -> Tổng là 0xB
+  GPIOB.CRL.REG &= ~(0xF << 24); // Xóa cấu hình cũ của PB6
+  GPIOB.CRL.REG |= (0xB << 24);  // Ghi cấu hình mới (0xB = 1011b)
+
+  // ==========================================================
+  // BƯỚC 3: CẤU HÌNH TIM4 (PWM MODE)
+  // ==========================================================
+  
+  // 3.1 Cài đặt tần số
+  // Ta muốn tần số PWM khoảng 1kHz để mắt không thấy nháy.
+  // Clock hệ thống = 8MHz.
+  // Chia tần (PSC) = 7 -> Timer chạy 1MHz (1us/tick).
+  // Chu kỳ (ARR) = 999 -> 1000 tick = 1ms -> Tần số 1kHz.
+  TIM4.PSC.REG = 7;
+  TIM4.ARR.REG = 999;
+
+  // 3.2 Cấu hình Chế độ PWM Mode 1 cho Channel 1
+  // Thanh ghi CCMR1 (Capture/Compare Mode Register 1)
+  // OC1M (Bit 6:4) = 110 (PWM Mode 1: CNT < CCR1 thì Cao, ngược lại Thấp)
+  // OC1PE (Bit 3) = 1 (Preload Enable: Đệm dữ liệu cho mượt)
+  TIM4.CCMR1.BITS_OUTPUT.OC1M = 6; // 6 là 110 nhị phân
+  TIM4.CCMR1.BITS_OUTPUT.OC1PE = 1;
+
+  // 3.3 Bật đầu ra cho Channel 1 (Bắt buộc)
+  // Thanh ghi CCER (Enable Register) -> Bit CC1E
+  TIM4.CCER.BITS.CC1E = 1;
+
+  // 3.4 Bật Timer chạy
+  // Thanh ghi CR1 -> Bit CEN
+  // Bit ARPE (Auto-reload preload) = 1 cho an toàn
+  TIM4.CR1.BITS.APRE = 1;
+  TIM4.CR1.BITS.CEN = 1;
+
+  // ==========================================================
+  // BƯỚC 4: VÒNG LẶP THỞ (Thay đổi độ sáng)
+  // ==========================================================
+
+  while(1)
+  {
+    // Gán độ sáng vào thanh ghi CCR1
+    TIM4.CCR1.REG = brightness;
+
+    // Tăng/Giảm độ sáng
+    brightness += step;
+
+    // Đảo chiều khi chạm đỉnh hoặc đáy
+    if (brightness >= 1000 || brightness <= 0)
+    {
+      step = -step; // Đảo dấu bước nhảy
+    }
+
+    // Delay một chút để mắt kịp nhìn thấy hiệu ứng "thở"
+    // (Bạn có thể sửa số này: Càng to càng chậm)
+    for(volatile long i=0; i<10000; i++);
+  }
+}

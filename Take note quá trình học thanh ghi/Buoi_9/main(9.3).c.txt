@@ -1,0 +1,120 @@
+/*catching signal with PA8*/
+#include <rcc.h>
+#include <gpio.h>
+#include <led.h>
+#include <button.h>
+#include <cortex_m3.h>
+#include <bitband.h>
+#include <flash.h>
+#include <stm32f103c8t6.h>
+#define IR_STATE_IDLE                   0
+#define IR_STATE_START_TRIGG            1
+#define IR_STATE_WAITF_FALL_of_START    2    //initially interchange 
+#define IR_STATE_WAIT_RISE_of_START     3    //initially interchange 
+
+#define IR_STATE_WAIT_DATA_LOW          4
+#define IR_STATE_WAIT_DATA_HIGH         5
+#define IR_STATE_IDLE_TEMP              6   
+#define IR_STATE_ERROR                  7   
+struct
+{
+  unsigned char State;
+  unsigned char Logic;
+  unsigned char TimeHigh;
+  //'Count' is used to check how many times that SysTick Interupt, 
+  //that means how many times 50us not flipping '0(low)' and '1(high)' signal.
+  unsigned char Count; 
+} IRCapture = {.State = IR_STATE_IDLE, .Logic = 0, .Count = 0};
+
+unsigned char have_data = 0;
+void SysTick_Handler()
+{
+  if(IRCapture.State == IR_STATE_IDLE_TEMP)
+  {
+    if(!GPIOA.IDR.BITS.b5)
+    {
+      IRCapture.State = IR_STATE_WAIT_RISE_of_START;
+      IRCapture.Logic = GPIOA.IDR.BITS.b5;
+    //DO NOT return here, if we do so, we can't check the error case
+    //return;
+    }
+  }
+  if(IRCapture.State == IR_STATE_ERROR)
+  {
+    if(GPIOA.IDR.BITS.b5)
+      IRCapture.State = IR_STATE_IDLE;
+    return;
+  }
+  if( IRCapture.Logic != GPIOA.IDR.BITS.b5)
+  {
+    IRCapture.Logic = GPIOA.IDR.BITS.b5; //Store the signal being captured
+    switch(IRCapture.State)
+    {
+    case IR_STATE_IDLE: IRCapture.State = IR_STATE_START_TRIGG; break;
+    case IR_STATE_START_TRIGG: IRCapture.State = IR_STATE_WAITF_FALL_of_START; break;
+    case IR_STATE_WAITF_FALL_of_START: IRCapture.State = IR_STATE_WAIT_RISE_of_START; break;
+    case IR_STATE_WAIT_RISE_of_START: IRCapture.State = IR_STATE_WAIT_DATA_LOW;
+       have_data = 1;  
+       break;
+    case IR_STATE_WAIT_DATA_LOW: 
+      IRCapture.TimeHigh = IRCapture.Count;
+      IRCapture.State = IR_STATE_WAIT_DATA_HIGH; 
+      break;
+    case IR_STATE_WAIT_DATA_HIGH: 
+      if(IRCapture.TimeHigh > (2*IRCapture.Count))
+      {
+        //capture bit 1
+      }
+      else
+      {
+        //capture bit 0
+      }   
+      IRCapture.State = IR_STATE_WAIT_DATA_HIGH; 
+      break;
+    }
+    //every time the data line change, we need to reset the IRCapture.Count to 0
+    //put this stuff above switch case with be worthless
+    IRCapture.Count = 0;
+  }
+  else
+  {
+    IRCapture.Count++;
+    if(IRCapture.State == IR_STATE_WAIT_DATA_LOW && (IRCapture.Count > 100))
+    {
+      GPIOA.ODR.BITS.b8 = !GPIOA.ODR.BITS.b8;
+      IRCapture.State = IR_STATE_IDLE_TEMP;
+      IRCapture.Count = 0; //If not reset, it would replicate the IR_STATE_IDLE
+    if(IRCapture.Count > 240)
+    {
+      if(IRCapture.Logic)
+        IRCapture.State = IR_STATE_IDLE;
+        if(have_data)
+        {
+          have_data = 0;
+          GPIOA.ODR.BITS.b8 = !GPIOA.ODR.BITS.b8;
+        }
+      else
+        IRCapture.State = IR_STATE_ERROR;   
+      
+      IRCapture.Count = 0;
+    }
+    
+    }
+  }
+}
+void main()
+{
+  RCC_BITBAND.APB2_ENR.IOPA = 1;
+  GPIOA.ODR.REG = BIT3 | BIT5;
+  GPIOA_Enable();
+  GPIO_Mode(&GPIOA, BIT1| BIT3 | BIT8, GPIO_MODE_OUTPUT_PUSHPULL_2MHz);
+  GPIO_Mode(&GPIOA, BIT5, GPIO_MODE_INPUT_PULL);
+  IRCapture.Logic = GPIOA.IDR.BITS.b5;
+  RCC_BITBAND.APB2_ENR.IOPC = 1;
+  GPIO_Mode(&GPIOC, BIT13, GPIO_MODE_OUTPUT_PUSHPULL_2MHz);
+  
+  STK_Init(400); //System tick 50uS
+  while(1)
+  {
+  }
+}

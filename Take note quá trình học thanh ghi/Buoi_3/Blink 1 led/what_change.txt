@@ -1,0 +1,124 @@
+
+File change:
+-rcc.h          : none
+-config.h       : define macro function CFG_LED(), set it to LOW as default
+    #define CFG_LED(Value) GPIOB.ODR.BITS.b12 = !(Value)
+        
+-define.h       : none
+
+-gpio.c         : split from main (1).c
+-gpio.h         : split from main (1).c. 
+1. Move typedef struct{}GPIO_TypeDef; into gpio.h
+2. Create typedef enum{}GPIO_MODE; to create option for choosing type of INPUT and OUTPUT. 
+    2.1.1 Instead of using 2 lines to config full OUTPUT option for PIN B12
+        //config GPIOB.b12 to OUTPUT
+        GPIOB.CRH.BITS.MODE_12 = 3;
+        GPIOB.CRH.BITS.CNF_12  = 0;
+    
+    2.1.2 And have to use multiple line to access the BSRR register. Because we have to modify MODE and CNF.
+    //    //Blink led 2
+    //    
+    //    //RESET  
+    //    GPIOB.BSRR.REG = (1UL << 12); 
+    //    for (unsigned long i =0; i< 500000 ; i++);
+    //  
+    //    //SET
+    //    GPIOB.BSRR.REG = (1UL << 12 + 16); // Look at data sheet
+    //    for (unsigned long i =0; i< 500000 ; i++);
+
+    2.2.1 Now we can use   only 1 line to tell that
+    //config GPIOB.b12 to OUTPUT
+    GPIO_Mode ( &GPIOB, 1UL << 12, GPIO_MODE_OUTPUT_PUSHPULL_10MHz);
+
+
+  
+3. Modify led component and blink logic
+-led.c          : declare & define Led_Process(), Led_Blink(), Led_Begin()
+-led.h          : declare & define Led_Process(), Led_Blink(), Led_Begin()
+-main (2).c     : 
+
+3.1 From main(1).c. Now only use Led_Blink(5,10);
+ 
+3.2 Using function that is written specifically for led component(led.h/.c). We can init the clock for led, and tell the led to blink with the exact interval in STM32 using logic analyzer software.
+    //5: unsigned int Times, số lần blink led
+    
+    /*
+    Yêu cầu: Led_Process() phải tạo ra độ trễ 20ms
+    //10:unsigned int EdgeTime, thời gian mỗi cạnh, trong trường hợp này là 200ms
+    //bởi vì thời gian xử lí của void Led_Process(void(*FinishFunction)()); là 20ms, 
+    //nên chỉ cần truyền '10' vào unsigned int Times
+    */
+    
+    
+    //init led
+    Led_Begin();
+    Led_Blink(5,10);
+  
+3.3 Tính toán logic analyzer
+    /*
+    Yêu cầu: Led_Process() phải tạo ra độ trễ 20ms
+    A. Kết nối với logic analyzer, test độ rộng xung của một chu kì nhận được từ một cạnh
+    
+    
+    //Blink cơ bản
+    
+    void main()
+    {
+    // turn on clock for GPIOB
+    RCC.APB2_ENR.BITS.IOPB = 1;
+    //config GPIOB.b12 to OUTPUT
+    GPIO_Mode ( &GPIOB, 1UL << 12, GPIO_MODE_OUTPUT_PUSHPULL_10MHz);
+    //init led
+    Led_Begin();
+    
+    
+    Led_Blink(5,10); // 5 lần blink, mỗi lần blink với cạnh 200ms[200ms = 10 x 20ms]
+    
+    while(1)
+    {
+        GPIOB.ODR.REG = ~GPIOB.ODR.REG;
+        for(unsigned long i = 0; i< 500000; i++);
+    }
+    ---> Ta chạy 500000 lần. 
+    ---> Kết quả đo được là : 0.4368s cho một trạng thái ON/OFF của led( 1 chu kì) , với độ rộng mỗi chu kì là 20ms , 
+    thì số lượng chu kì là : 436.8/ 20ms  = 21.84 chu kì(cycles)
+    ---> Số vòng lặp 500000 không hợp lí, để đảm bảo mỗi chu kì là 20ms thay vì 0.4368s. Thì ta lấy 500000/21.84 = 22894
+    ---> Vậy thì bây giờ ta chỉ cần chạy 22894 vòng lặp để đạt được 20ms.
+    */
+    
+    /* 
+    B. Thay đổi logic trong main(1).c, không sử dụng trưc tiếp Led_Blink(5,10); trong void main nữa ma dùng một biến để điều khiển trạng thái của Led bên ngoài void main().
+    // Blink nâng cao
+    
+    __root unsigned char blink = 0;
+    void main()
+    {
+        // turn on clock for GPIOB
+        RCC.APB2_ENR.BITS.IOPB = 1;
+        //config GPIOB.b12 to OUTPUT
+        GPIO_Mode ( &GPIOB, 1UL << 12, GPIO_MODE_OUTPUT_PUSHPULL_10MHz);
+        //init led
+        Led_Begin();
+        
+        
+        while(1)
+        {
+            if(blink)
+            {
+                blink = 0; // Tự động chuyển về 0 để chúng ta toggle lên 1 để test giá trị của blink thông qua trạng thái led.
+                Led_Blink(5, 10);
+            }
+        }
+        Led_Process((void*)0);
+        for(unsigned long i = 0 ; i<22894 i++);
+    }
+    */
+    
+    /*
+    C. Thêm 'blink' vào Watch 1 để sửa giá trị thành 1 hoặc 0 để xem trạng thái của Led
+    */
+    
+    
+    
+    
+    

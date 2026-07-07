@@ -1,0 +1,27 @@
+- Rename 'RCC', 'FLASH' in cortex_m3.h by 'RCC_IRQ', 'FLASH_IRQ'
+- Add these files into project:
+	+ cortex_m3.c: 
+		--> avoid missing definition for STK_Init. 
+		--> This wont happen with Buoi_8, since STK_Init is not a normal variable represent for register. 
+		--> A variable could be called out from 'header files' with ease
+		, cuz it doesn't need to be recorded cuz compiler dont have to remember its state through different location.
+		--> Instead, its a function work with multi variables, therefore its status would be a vital role in the entire system.
+		--> Although we already have declare for STK_Init() in cortex_m3.h:
+		void STK_Init(unsigned int Load);               //IRQ trigger = Load * 1000 / FSYS (us), FSYS KHz
+		--> The Linker will mark this as cracking nut, therefore stop us from touching this function.
+	
+	+ stm32f103c8t6.h
+		--> You could avoid this file if needed, since we already have declaration for neccessary variable.
+		--> This would be a nightmare if we forget to include other header files.
+		.general_timer.h
+		.basic_timer.h
+		.base_timer.h
+	
+
+
+- main(9.2).c 
++ only catch the first break-time for GPIOA.b8
++ the next after that will not be capture.
+
+- main(9.3).c 
++ fixing main(9.2).c issue

@@ -1,0 +1,23 @@
+This lesson require Flash memory to work with.
+Otherwise the system wont act the right way
+
+main(7.1).c
++ Turn on MCO pi( PA8)
++ Use Logic Analyzer to catch the signal from SYSCLK(system clock)
+
+
+
+main(7.2).c
++ Remember to initialize the 
++
+
+main(debug_v1).c
++ using volatile so the compiler wont discard it
++ however, this is not a good way since we are trying to use bitband and clock source to dive into STM32 clock source 
++ disable <flash.h> and <led.h> library, using directly "GPIOB_BITBAND.ODR.b12 = 1;" to test if led or stm32 acting as normal
+
+
+main(debug_v2).c
++ act the same as v1
++ enable <flash.h> to actually learn the lesson
++ 

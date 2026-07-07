@@ -1,0 +1,52 @@
+#include <rcc.h>
+#include <gpio.h>
+#include <bitband.h>
+#include <flash.h> // Cần để chỉnh độ trễ Flash
+
+void main() 
+{
+  // --- BƯỚC 1: CẤU HÌNH FLASH & PRESCALER ---
+  // Khi chạy 72MHz, Flash cần 2 wait states (LATENCY = 2)
+  FLASH.ACR.BITS.LATENCY = 2;
+
+  // Quan trọng: APB1 max là 36MHz. Nếu SYSCLK lên 72MHz, APB1 phải chia 2.
+  // Nếu không chia, các ngoại vi trên APB1 (Timer 2,3,4, UART2...) sẽ chạy quá tốc độ gây lỗi.
+  RCC.CFGR.BITS.APB1_PRE = 4; // 4 tương ứng với chia 2 (HCLK / 2)
+
+  // --- BƯỚC 2: KÍCH HOẠT HSE (Thạch anh ngoại) ---
+  RCC.CR.BITS.HSE_ON = 1;
+  while( !RCC.CR.BITS.HSE_RDY); // Chờ thạch anh ngoại ổn định
+
+  // --- BƯỚC 3: CẤU HÌNH PLL (Bộ nhân tần) ---
+  // Chọn nguồn PLL là HSE
+  RCC.CFGR.BITS.PLL_SRC = 1; 
+  
+  // Hệ số nhân: STM32F103 HSE thường là 8MHz. Muốn lên 72MHz thì nhân 9.
+  // Trong thanh ghi: 0000=x2, ... 0111=x9. Vậy ghi số 7.
+  RCC.CFGR.BITS.PLL_MUL = 7; 
+
+  // Bật PLL
+  RCC.CR.BITS.PLL_ON = 1;
+  while( !RCC.CR.BITS.PLL_RDY); // Chờ PLL khóa (Lock) ổn định
+
+  // --- BƯỚC 4: CHUYỂN SYSCLK SANG DÙNG PLL ---
+  RCC.CFGR.BITS.SW = 2; // Chọn nguồn là PLL
+  while( !(RCC.CFGR.BITS.SWS == 2)); // Chờ phần cứng xác nhận đã chuyển xong
+
+  // --- BƯỚC 5: CẤU HÌNH GPIO (Như cũ) ---
+  RCC.APB2_ENR.BITS.IOPB = 1; // Cấp clock cho Port B
+  GPIO_Mode(&GPIOB, 1UL << 12, GPIO_MODE_OUTPUT_PUSHPULL_10MHz);
+
+  // --- BƯỚC 6: VÒNG LẶP DEBUG ---
+  while(1)
+  {
+    // Bật LED (Mức 0 với Sink, Mức 1 với Source)
+    // Nếu đã sửa bitband.h, dòng này sẽ chạy đúng
+    GPIOB_BITBAND.ODR.b12 = 0; 
+    for(volatile unsigned long i = 0; i < 2000000; i++); // Delay dài để mắt dễ thấy
+
+    // Tắt LED
+    GPIOB_BITBAND.ODR.b12 = 1; 
+    for(volatile unsigned long i = 0; i < 2000000; i++);
+  }
+}

@@ -1,0 +1,129 @@
+1. Giải thích thuật ngữ:
+-Cạnh (Edge): Chỉ sự thay đổi trạng thái của LED, từ TẮT sang BẬT (cạnh lên) hoặc từ BẬT sang TẮT (cạnh xuống). 
+    +Mỗi cạnh có một khoảng thời gian duy trì. Trong code, thời gian mỗi cạnh được xác định bằng tham số EdgeTime trong hàm Led_Blink, 
+    +và nó được tính bằng đơn vị 20ms (ví dụ: EdgeTime=10 nghĩa là thời gian mỗi cạnh là 10 * 20ms = 200ms). 
+-Chu kì xung (Pulse Cycle): Là một chu kì hoàn chỉnh của LED, bao gồm một lần BẬT và một lần TẮT. Một chu kì có hai cạnh. Thời gian chu kì bằng tổng thời gian của hai cạnh. Ví dụ: nếu mỗi cạnh là 200ms, thì chu kì là 400ms.
+
+2. Chỉ ra trong code:
+Trong file led.h, cấu trúc Led_TypeDef có các trường:
+-Times: Số cạnh cần thực hiện (mỗi blink có hai cạnh, nên Times = số blink * 2).
+-EdgeTime: Số đơn vị 20ms cho mỗi cạnh.
+-CountEdgeTime: Bộ đếm để theo dõi số lần Led_Process đã chạy, mỗi lần tương ứng 20ms.
+
+
+3. Hình vẽ minh họa:
+Thời gian (ms):    0     200    400    600    800    ...    2000
+LED state:         OFF   ON     OFF    ON     OFF    ...    OFF
+                  |-----|-----|-----|-----|-----|-----|-----|
+Chu kì:           [---1---]   [---2---]   [---3---]   ...   [---5---]
+Cạnh:             Cạnh lên    Cạnh xuống   Cạnh lên    ...   Cạnh xuống
+
+-Giải thích hình:
++Tại thời điểm 0ms: LED TẮT.
++Sau 200ms (10 * 20ms): LED BẬT (cạnh lên).
++Sau 400ms: LED TẮT (cạnh xuống) - kết thúc chu kì 1.
++Lặp lại cho đến khi đủ 5 chu kì (2000ms).
+
+
+4. Tính toán thời gian:
+-Thời gian mỗi cạnh = EdgeTime * 20ms. Với EdgeTime=10, mỗi cạnh là 200ms.
+-Thời gian mỗi chu kì = 2 * EdgeTime * 20ms. Với EdgeTime=10, mỗi chu kì là 400ms.
+-Tổng thời gian blink = Times * 2 * EdgeTime * 20ms. Với Times=5 và EdgeTime=10, tổng thời gian là 5 * 2 * 10 * 20ms = 2000ms.
+
+5. Lưu ý:
+Giá trị 20ms không được config cứng trong code mà được tạo bởi vòng lặp for trong main (2).c (với giá trị 22894 lần lặp). Đây là kết quả calib thủ công dựa trên tốc độ clock của MCU.
+Để chính xác hơn, bạn nên dùng timer để tạo ngắt 20ms thay vì vòng lặp.
+
+
+
+
+Trường hợp 1: Times = 2 (Blink 2 lần) và EdgeTime = 10 (mỗi cạnh 200ms)
+Thời gian (ms):   0     200    400    600    800
+                 |------|------|------|------|
+LED state:       OFF ─── ON ─── OFF ─── ON ─── OFF
+                 ˄      ˄      ˄      ˄      ˄
+                 |      |      |      |      |
+Giai đoạn:       Bắt đầu Cạnh lên Cạnh xuống Cạnh lên Cạnh xuống
+                 |─────────────|─────────────|
+Chu kỳ 1:        [───────]     |             |
+Chu kỳ 2:                      [───────]     |
+Tổng:            [─────────────────────]     |
+                 (2 chu kỳ = 4 cạnh)         Dừng
+                 
+                 
+Trường hợp 2: Times > 100 (Ví dụ: 101) - Blink vĩnh viễn
+Thời gian (ms):   0     200    400    600    800     ...   (tiếp tục mãi)
+                 |------|------|------|------|------|------
+LED state:       OFF ─── ON ─── OFF ─── ON ─── OFF ─── ... 
+                 ˄      ˄      ˄      ˄      ˄      ˄
+                 |      |      |      |      |      |
+Giai đoạn:       Bắt đầu Cạnh lên Cạnh xuống Cạnh lên Cạnh xuống ...
+                 |─────────────|─────────────|─────────────|
+Chu kỳ 1:        [───────]     |             |             |
+Chu kỳ 2:                      [───────]     |             |
+Chu kỳ 3:                                    [───────]     |
+...                                                       ...
+                 (Tiếp tục blink không dừng)                 
+                 
+                 
+                 
+/* 
+    Bản cải tiến cho Led_Blink() VÀ Led_Process()
+    
+    /**
+ * @brief Kích hoạt chế độ blink cho LED
+ * @param Times: Số lần blink. 
+ *        Nếu Times > 100: LED sẽ blink vĩnh viễn
+ *        Nếu Times <= 100: LED blink đúng số lần rồi dừng
+ * @param EdgeTime: Thời gian mỗi cạnh (đơn vị: 20ms)
+ *        Ví dụ: EdgeTime = 10 → mỗi trạng thái LED kéo dài 200ms
+ */
+void Led_Blink(unsigned int Times, unsigned int EdgeTime) 
+{
+    // Khởi tạo trạng thái ban đầu
+    Led.IsOn = 0;           // Đảm bả LED bắt đầu ở trạng thái TẮT
+    CFG_LED(0);             // Áp dụng trạng thái TẮT ra phần cứng
+    Led.CountEdgeTime = 0xFE; // Khởi tạo bộ đếm thời gian (gần đạt ngưỡng)
+    Led.EdgeTime = EdgeTime;  // Lưu thời gian mỗi cạnh
+    
+    // Xử lý logic số lần blink
+    if (Times > 100) {
+        // Chế độ đặc biệt: Blink vĩnh viễn
+        Led.Times = 255;    // 0xFF = giá trị đặc biệt đánh dấu chế độ vĩnh viễn
+    } else {
+        // Chế độ thông thường: Blink số lần xác định
+        // Mỗi lần blink yêu cầu 2 cạnh (BẬT và TẮT)
+        Led.Times = Times * 2;  // Tổng số cạnh cần thực hiện
+    }
+}
+
+/**
+ * @brief Xử lý trạng thái blink của LED, cần được gọi định kỳ mỗi 20ms
+ * @param FinishFunction: Con trỏ hàm callback được gọi khi kết thúc blink
+ */
+void Led_Process(void(*FinishFunction)())
+{
+    // Chỉ xử lý nếu LED đang trong chế độ blink
+    if(Led.Times != 0) {
+        // Đếm thời gian và kiểm tra xem đã đủ thời gian cho một cạnh chưa
+        if(Led.CountEdgeTime++ >= Led.EdgeTime) {
+            Led.CountEdgeTime = 0;  // Reset bộ đếm thời gian
+            
+            // Thay đổi trạng thái LED (toggle)
+            Led.IsOn = !Led.IsOn;
+            CFG_LED(Led.IsOn);  // Áp dụng trạng thái mới ra phần cứng
+            
+            // Xử lý logic đếm số lần blink (trừ khi đang ở chế độ vĩnh viễn)
+            if(Led.Times != 255) {  // Nếu KHÔNG phải chế độ blink vĩnh viễn
+                // Giảm bộ đếm số cạnh còn lại
+                if(!(--Led.Times)) {
+                    // Nếu đã blink đủ số lần, gọi hàm callback (nếu có)
+                    if(FinishFunction) {
+                        FinishFunction();
+                    }
+                }
+            }
+            // Nếu Led.Times == 255, không giảm giá trị → tiếp tục blink vĩnh viễn
+        }
+    }
+}                 

@@ -1,0 +1,105 @@
+#include <stm32f103c8t6.h>
+
+// --- ĐỊNH NGHĨA CÁC HÀM NGẮT (ISR) ---
+// (CPU sẽ nhảy vào đây khi có ngắt xảy ra)
+
+// 1. Ngắt EXTI0 -> Đảo trạng thái LED PA0
+void EXTI0_IRQHandler()
+{
+  // Xóa cờ ngắt (Bắt buộc, nếu không nó lặp lại mãi)
+  EXTI.PR.REG |= (1 << 0); 
+  // Đảo trạng thái PA0
+  GPIOA.ODR.REG ^= (1 << 0);
+}
+
+// 2. Ngắt TIM4 -> Đảo trạng thái LED PB12
+void TIM4_IRQHandler()
+{
+  TIM4.SR.BITS.UIF = 0; // Xóa cờ ngắt Timer
+  GPIOB.ODR.REG ^= (1 << 12); // Đảo trạng thái PB12
+}
+
+// 3. Ngắt UART1 -> Đảo trạng thái LED PC13
+void UART1_IRQHandler()
+{
+  // Với ngắt giả lập, ta không cần xóa cờ phần cứng
+  GPIOC.ODR.REG ^= (1 << 13); // Đảo trạng thái PC13
+}
+
+// --- HÀM MAIN ---
+void main()
+{
+  // ==========================================================
+  // BƯỚC 1: CẤP CLOCK (Xăng cho xe chạy)
+  // ==========================================================
+  // APB2: GPIOA, GPIOB, GPIOC, AFIO (cho EXTI), UART1
+  RCC.APB2_ENR.REG |= (1<<2) | (1<<3) | (1<<4) | (1<<0) | (1<<14);
+  // APB1: TIM4
+  RCC.APB1_ENR.REG |= (1<<2);
+
+  // ==========================================================
+  // BƯỚC 2: CẤU HÌNH GPIO LÀ OUTPUT (Để nháy LED)
+  // ==========================================================
+  
+  // PA0: Output Push-Pull 50MHz (Mode=3, CNF=0)
+  // Nằm ở CRL (Bit 0-3)
+  GPIOA.CRL.REG |= (3 << 0); 
+  GPIOA.CRL.REG &= ~(1 << 2); // Đảm bảo CNF = 0
+
+  // PB12: Output Push-Pull 50MHz
+  // Nằm ở CRH (Bit 16-19). (12-8)*4 = 16
+  GPIOB.CRH.REG |= (3 << 16);
+  GPIOB.CRH.REG &= ~(1 << 18);
+
+  // PC13: Output Push-Pull 50MHz
+  // Nằm ở CRH (Bit 20-23). (13-8)*4 = 20
+  GPIOC.CRH.REG |= (3 << 20);
+  GPIOC.CRH.REG &= ~(1 << 22);
+
+  // ==========================================================
+  // BƯỚC 3: CẤU HÌNH NGẮT (Setup các Cầu Dao)
+  // ==========================================================
+
+  // --- SETUP CHO PA0 (Dùng EXTI0 - IRQ 6) ---
+  // [Cầu dao tổng]: NVIC ISER0 - Bit 6
+  *((volatile unsigned long*)0xE000E100) = (1 << 6);
+  // [Cầu dao con]: EXTI IMR - Bit 0
+  EXTI.IMR.REG |= (1 << 0);
+
+  // --- SETUP CHO PB12 (Dùng TIM4 - IRQ 30) ---
+  // [Cầu dao tổng]: NVIC ISER0 - Bit 30
+  *((volatile unsigned long*)0xE000E100) = (1 << 30);
+  // [Cấu hình Timer]: Chạy chậm để mắt thấy
+  TIM4.PSC.REG = 7999;  // 1ms mỗi tick (nếu clock 8MHz)
+  TIM4.ARR.REG = 1000;  // 1000 tick = 1 giây ngắt 1 lần
+  TIM4.CR1.REG |= 1;    // Bật Timer (CEN)
+  // [Cầu dao con]: TIM4 DIER - Bit 0 (UIE)
+  TIM4.DIER.REG |= (1 << 0);
+
+  // --- SETUP CHO PC13 (Dùng UART1 - IRQ 37) ---
+  // [Cầu dao tổng]: NVIC ISER1 - Bit 5 (37 % 32 = 5)
+  // Ta sẽ dùng Software Trigger (Set Pending) ở trong vòng lặp
+  *((volatile unsigned long*)0xE000E104) = (1 << 5);
+
+
+  // ==========================================================
+  // BƯỚC 4: VÒNG LẶP VÔ TẬN
+  // ==========================================================
+  while(1)
+  {
+    // 1. Kích hoạt EXTI0 bằng phần mềm (Thay vì bấm nút)
+    // Ghi 1 vào thanh ghi SWIER (Software Interrupt Event)
+    EXTI.SWIER.REG |= (1 << 0); 
+    // -> Lúc này CPU sẽ nhảy vào EXTI0_IRQHandler -> PA0 đảo chiều
+    
+    // 2. Kích hoạt UART1 bằng phần mềm (Giả lập)
+    // Ghi 1 vào NVIC ISPR1 (Set Pending) - Offset 0x204
+    *((volatile unsigned long*)0xE000E204) = (1 << 5);
+    // -> Lúc này CPU sẽ nhảy vào UART1_IRQHandler -> PC13 đảo chiều
+    
+    // 3. TIM4 thì nó tự chạy nền, cứ 1 giây nó tự vào ngắt -> PB12 đảo chiều
+
+    // Delay một chút để mắt kịp nhìn (Khoảng 200-300ms)
+    for(volatile long i = 0; i < 500000; i++);
+  }
+}

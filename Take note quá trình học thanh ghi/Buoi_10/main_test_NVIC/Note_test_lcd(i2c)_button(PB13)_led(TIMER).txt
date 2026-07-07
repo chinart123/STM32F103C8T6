@@ -1,0 +1,13 @@
+Giờ thì nâng cấp đoạn code i2c này lên bằng cách là thêm nút nhấn ở PB13 để nhận tín hiệu in ra màn hình.
+
+nhấn  lần 1:  1st PRESS
+
+nhấn  lần 2:  2nd PRESS
+
+nhấn  lần 3:  3rd PRESS
+
+nhấn lần 4:  4th PRESS
+
+nhấn lần 5: nháy led PA0: 0.5s
+
+nhấn lần 6: cho led PA0 vào sáng dần tắt dần(với vòng for(10000) dùng TIMER.

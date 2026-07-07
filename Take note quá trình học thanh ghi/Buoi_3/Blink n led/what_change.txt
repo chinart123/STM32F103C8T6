@@ -1,0 +1,18 @@
+Change from 1 LED to multiple LED:
+File change:
+
+config.h       : modify CFG_LED() function instead of using it as a macro
+        //config !(led.h)
+        #include <gpio.h> 
+        //#define CFG_LED(Value) GPIOB.ODR.BITS.b12 = !(Value)
+        #define NUMBER_OF_LED 4
+        void CFG_LED(unsigned int LedIndex, unsigned int Value);
+define.h       : none
+gpio.c         : none
+gpio.h         : none
+led.c          : 1 led --> n led
+led.h          : 1 led --> n led
+main (3).c     : Ledblink() now has 3 parameter.
+        //Led_Blink(5,10);
+        Led_Blink(0,5,10);
+rcc.h          : none

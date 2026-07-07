@@ -1,0 +1,81 @@
+#include <rcc.h>
+#include <gpio.h>
+#include <led.h>
+#include <button.h>
+#include <cortex_m3.h>
+#include <bitband.h>
+
+#ifndef BIT7
+  #define BIT0          (0x01 << 0)
+  #define BIT1          (0x01 << 1)
+  #define BIT2          (0x01 << 2)
+  #define BIT3          (0x01 << 3)
+  #define BIT4          (0x01 << 4)
+  #define BIT5          (0x01 << 5)
+  #define BIT6          (0x01 << 6)
+  #define BIT7          (0x01 << 7)
+#endif
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+#ifndef BIT15
+  #define BIT8          (0x0001 << 8)
+  #define BIT9          (0x0001 << 9)
+  #define BIT10         (0x0001 << 10)
+  #define BIT11         (0x0001 << 11)
+  #define BIT12         (0x0001 << 12)
+  #define BIT13         (0x0001 << 13)
+  #define BIT14         (0x0001 << 14)
+  #define BIT15         (0x0001 << 15)
+#endif
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+#ifndef BIT31
+  #define BIT16         (0x000001 << 16)
+  #define BIT17         (0x000001 << 17)
+  #define BIT18         (0x000001 << 18)
+  #define BIT19         (0x000001 << 19)
+  #define BIT20         (0x000001 << 20)
+  #define BIT21         (0x000001 << 21)
+  #define BIT22         (0x000001 << 22)
+  #define BIT23         (0x000001 << 23)
+
+  #define BIT24         (0x00000001 << 24)
+  #define BIT25         (0x00000001 << 25)
+  #define BIT26         (0x00000001 << 26)
+  #define BIT27         (0x00000001 << 27)
+  #define BIT28         (0x00000001 << 28)
+  #define BIT29         (0x00000001 << 29)
+  #define BIT30         (0x00000001 << 30)
+  #define BIT31         (0x00000001 << 31)
+#endif
+
+// Định nghĩa thanh ghi cấp Clock thủ công (để sửa lỗi Warning)
+#define RCC_APB2ENR  (*((volatile unsigned long *)0x40021018))
+struct
+{
+  unsigned char T ;
+  unsigned  char  PWMValue;
+  unsigned  char Counter;
+  
+}LedPWM = {250, 50 , 0 };
+void SysTick_Handler()  //1ms
+{
+  LedPWM .Counter++;
+  if (LedPWM .Counter == LedPWM .PWMValue)
+    GPIOB.ODR.BITS.b12 = 0;
+  if (LedPWM .Counter >= LedPWM.T)
+  {
+    GPIOB.ODR.BITS.b12 = 1;
+    LedPWM.Counter = 0;
+  }
+}
+void main() 
+{
+  STK.LOAD = 1000;
+  STK.VAL = 200;
+  STK.CTRL.REG = BIT2 | BIT1 | BIT0;
+  GPIOB_Enable();
+  GPIO_Mode(&GPIOB, BIT12, GPIO_MODE_OUTPUT_PUSHPULL_50MHz);
+  while(1)
+  {
+    
+  }
+}

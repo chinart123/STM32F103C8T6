@@ -1,0 +1,37 @@
+#include <rcc.h>
+#include <gpio.h>
+#include <led.h>
+#include <button.h>
+
+#include <bitband.h>
+void main() 
+{
+   
+  /*
+Bits 26:24 MCO: Microcontroller clock output
+Set and cleared by software.
+0xx: No clock
+100: System clock (SYSCLK) selected
+101: HSI clock selected
+110: HSE clock selected
+111: PLL clock divided by 2 selected
+*/
+  //choosing SYSCLK to run the system
+  RCC.CFGR.BITS.MCO = 4;
+  //turn on clock for GPIOA
+  RCC.APB2_ENR.BITS.IOPA = 1;
+  //config GPIOA.b8 to take the MCO 
+  GPIO_Mode(&GPIOA, 1UL << 8, GPIO_MODE_AF_OUTPUT_PUSHPULL_50MHz);
+  
+  
+  //turn on clock for GPIOB
+  RCC.APB2_ENR.BITS.IOPB = 1;
+  //config GPIOB.b12 to OUTPUT
+  GPIO_Mode(&GPIOB, 1UL << 12, GPIO_MODE_OUTPUT_PUSHPULL_10MHz);
+  while(1)
+  {
+    for( unsigned long i =0; i <500000; i++);
+    GPIOB_BITBAND.ODR.b12 = !GPIOB_BITBAND.ODR.b12;
+    //*BITBAND_PERIPHERAL_POINTER(&GPIOB.ODR, 12) =!(*BITBAND_PERIPHERAL_POINTER(&GPIOB.ODR, 12));
+  }
+}
