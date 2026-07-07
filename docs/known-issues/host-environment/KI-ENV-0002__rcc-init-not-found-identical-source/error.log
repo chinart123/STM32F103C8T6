@@ -1,0 +1,7 @@
+# KHÔNG lưu được log gốc.
+#
+# Nhớ lại (chưa nguyên văn): trên laptop, build/link báo hàm RCC (RCC_Init)
+# "không tìm thấy" / "could not be found", trong khi PC cùng source lại build OK.
+# Mã lỗi chính xác (Pe.../Li.../La...) hiện chưa có.
+#
+# TÌM LẠI ĐƯỢC THÌ DÁN NGUYÊN VĂN VÀO ĐÂY và cập nhật 'codes' trong meta.yml.

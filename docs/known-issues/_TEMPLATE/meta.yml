@@ -1,0 +1,16 @@
+id: KI-XXX-NNNN
+title: '<tiêu đề>'
+origin: [toolchain]            # toolchain | language | filesystem | hardware | host-environment (đa tag được)
+tool: { name: IAR EWARM, version: '8.3' }
+codes: []                      # vd [Pe223, Li005]; để [] nếu chưa lưu
+phase: [compile]               # preprocess | compile | link | flash | runtime
+severity: build-blocker        # build-blocker | warning | runtime-fault | cosmetic
+status: open                   # fixed | open | mitigated
+novelty: common                # common | rare | original-discovery
+references_found: yes          # yes | none-known
+timeline:
+  discovered_at: 'YYYY-MM-DD HH:MM (+07:00)'
+  resolved_at:   ''            # để trống nếu chưa
+  documented_at: 'YYYY-MM-DD HH:MM (+07:00)'
+fixed_by: ''
+tags: []

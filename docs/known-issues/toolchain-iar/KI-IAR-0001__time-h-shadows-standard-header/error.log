@@ -1,0 +1,10 @@
+Warning[Pe223]: function "Time_Init" declared implicitly   D:\libraries\C&C++\Embedded_C99\Microcontroller\stm32f10x\test_lib\stm32f103c8t6\source\main.c 30
+Warning[Pe223]: function "Time_Millis" declared implicitly  D:\libraries\C&C++\Embedded_C99\Microcontroller\stm32f10x\test_lib\stm32f103c8t6\source\main.c 36
+gpio.c
+Linking
+Error[Li005]: no definition for "Time_Init"  [referenced from D:\libraries\C&C++\Embedded_C99\Microcontroller\stm32f10x\test_lib\stm32f103c8t6\Debug\Obj\main.o]
+Error[Li005]: no definition for "Time_Millis" [referenced from D:\libraries\C&C++\Embedded_C99\Microcontroller\stm32f10x\test_lib\stm32f103c8t6\Debug\Obj\main.o]
+Error while running Linker
+
+Total number of errors: 2
+Total number of warnings: 2

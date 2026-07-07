@@ -1,0 +1,16 @@
+id: KI-ENV-0002
+title: 'Cùng source y hệt, RCC_Init không tìm thấy trên 1 máy'
+origin: [host-environment, toolchain]   # source giống hệt -> nghi artifact/config; language chỉ là ứng viên
+tool: { name: IAR EWARM, version: 'giai đoạn học Buoi_4 (chưa rõ bản)' }
+codes: []                               # chưa lưu mã lỗi chính xác
+phase: [compile, link]
+severity: build-blocker
+status: open                            # chưa tái hiện được; ghi lại để tương lai truy
+novelty: original-discovery             # cùng source, khác máy -> ít/không có tài liệu
+references_found: none-known
+timeline:
+  discovered_at: 'giai đoạn học Buoi_4 (ngày chưa rõ)'
+  resolved_at:   ''                     # chưa xác nhận
+  documented_at: '2026-07-07 20:05 (+07:00)'
+fixed_by: ''
+tags: [identical-source, stale-build-artifacts, iar-config, rcc, clock, case-sensitivity-candidate]
