@@ -2121,6 +2121,12 @@
             <name>$PROJ_DIR$\..\..\..\1_Application\button\button.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\..\1_Application\button\fsm_button.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\1_Application\led\fsm_led.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\include\general_timer.h</name>
         </file>
         <file>
@@ -2130,7 +2136,7 @@
             <name>$PROJ_DIR$\..\..\..\1_Application\led\led.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\source\main (5.2).c</name>
+            <name>$PROJ_DIR$\source\main.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\source\startup_stm32f103cx.s</name>
@@ -2161,6 +2167,18 @@
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\driver\include\flash.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\1_Application\include\fsm_button.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\1_Application\include\fsm_led.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\driver\fsm_time.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\driver\include\fsm_time.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\driver\include\gpio.h</name>
