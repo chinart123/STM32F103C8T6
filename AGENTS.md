@@ -37,6 +37,18 @@ The AI owns **"does it BUILD"** (`iarbuild`). The user owns **"does it WORK"**
 (Download & Debug in IAR). Hardware truth crosses back only via a captured
 `runtime.log` — read that, don't guess from the user's memory.
 
+## Commit convention (§ sections)
+Commits are numbered **per branch**, initial import = **§0**, counting up §1, §2,
+§3… — no zig-zag across branches. Every commit subject begins with its `§<n>` marker.
+When a commit's payload lives in a subfolder, its full message is also saved as a file
+**inside that folder** and used verbatim (`git commit -F`): `_commitmsg_<n>.txt` on
+`main`, `_note_commitmsg_<n>.txt` on a notes branch. (Top-level / trivial commits may
+skip that file to keep the repo root clean — the `§` subject + commit-object message
+suffice.) **Each §-commit is self-contained: it holds only what belongs to its own
+stage** — no other stage's numbers or content bleeding into its message or files.
+These are log/documentation commits (not compile/run), so clean per-stage splitting
+never breaks the build.
+
 ## Pointers
 - Coding standard → `STANDARD.md`
 - Skills (each is a thin wrapper over a CLI script) → `Log-and-Report-writing-tools/skills/`
