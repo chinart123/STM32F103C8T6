@@ -1,0 +1,80 @@
+// ============================================================================
+//  capture.mac — IAR C-SPY macro: dump chosen registers to runtime.log over SWD
+//  (ST-Link V2, SWDIO+SWCLK only — no SWO/UART needed)
+//
+//  ⚠ TEMPLATE — load in IAR and verify on YOUR Embedded Workbench 8.3:
+//     Project > Options > Debugger > Setup > "Use macro file(s)" > pick this.
+//     Then in the C-SPY Macro window call:  dumpRegs()
+//  Built-in names (__openFile/__fmessage/__readMemory32) are IAR C-SPY macro
+//  functions; if a name differs in your version, adjust and re-test. The
+//  manual method in SKILL.md needs NO macro and works today.
+//
+//  Path is absolute to this machine; edit if the repo moves.
+// ============================================================================
+
+dumpRegs()
+{
+    __var f;
+    __var v;
+    f = __openFile("D:\\libraries\\Log-and-Report-writing-tools\\logs\\runtime.log", "a");
+    // NOTE: __openFile returns a FILE-HANDLE type, not an int. Test it for
+    // truthiness with `if (f)` — comparing it to 0 (`f == 0`) is a Type mismatch.
+    if (f)
+    {
+        // Values printed as hex via the `v:%x` format (default is decimal).
+        // --- NVIC ---
+        v = __readMemory32(0xE000E100, "Memory"); __fmessage f, "ISER0=0x", v:%x, "\n";
+        // --- RCC (clock enables) ---
+        v = __readMemory32(0x40021018, "Memory"); __fmessage f, "RCC_APB2ENR=0x", v:%x, "\n";
+        v = __readMemory32(0x4002101C, "Memory"); __fmessage f, "RCC_APB1ENR=0x", v:%x, "\n";
+        // --- GPIOB (0x40010C00): CRL +0x00, CRH +0x04, IDR +0x08, ODR +0x0C ---
+        v = __readMemory32(0x40010C04, "Memory"); __fmessage f, "GPIOB_CRH=0x", v:%x, "\n";
+        v = __readMemory32(0x40010C0C, "Memory"); __fmessage f, "GPIOB_ODR=0x", v:%x, "\n";
+        // --- TIM1 (0x40012C00): SR +0x10, DIER +0x0C, CR1 +0x00 ---
+        v = __readMemory32(0x40012C00, "Memory"); __fmessage f, "TIM1_CR1=0x", v:%x, "\n";
+        v = __readMemory32(0x40012C0C, "Memory"); __fmessage f, "TIM1_DIER=0x", v:%x, "\n";
+        v = __readMemory32(0x40012C10, "Memory"); __fmessage f, "TIM1_SR=0x", v:%x, "\n";
+        __fmessage f, "----\n";
+
+        __closeFile(f);
+        __message "capture.mac: dumped registers to runtime.log";
+    }
+    else
+    {
+        __message "capture.mac: cannot open runtime.log";
+    }
+}
+
+// ============================================================================
+//  dumpTim1() — Buoi 11 lesson: exactly the registers that expose the
+//  "NVIC line not enabled" bug. Call it at a breakpoint (or from the Macro
+//  Quicklaunch window) after the timer has run for ~1 s.
+// ============================================================================
+dumpTim1()
+{
+    __var f;
+    __var v;
+    f = __openFile("D:\\libraries\\Log-and-Report-writing-tools\\logs\\runtime.log", "a");
+    // __openFile returns a FILE-HANDLE type, not an int -> test with `if (f)`,
+    // never `if (f == 0)` (that raises "Type mismatch" and aborts the macro).
+    // Values are printed as hex via the `v:%x` format (default is decimal).
+    if (f)
+    {
+        __fmessage f, "-- Buoi11 TIM1 capture --\n";
+        v = __readMemory32(0xE000E100, "Memory"); __fmessage f, "NVIC_ISER0=0x", v:%x, "\n";   // bit25 = TIM1_UP enable
+        v = __readMemory32(0x40021018, "Memory"); __fmessage f, "RCC_APB2ENR=0x", v:%x, "\n";   // bit4 IOPC, bit11 TIM1
+        v = __readMemory32(0x40012C00, "Memory"); __fmessage f, "TIM1_CR1=0x", v:%x, "\n";   // bit0 CEN (running)
+        v = __readMemory32(0x40012C0C, "Memory"); __fmessage f, "TIM1_DIER=0x", v:%x, "\n";   // bit0 UIE (irq enabled)
+        v = __readMemory32(0x40012C10, "Memory"); __fmessage f, "TIM1_SR=0x", v:%x, "\n";   // bit0 UIF (overflow flag)
+        v = __readMemory32(0x40012C24, "Memory"); __fmessage f, "TIM1_CNT=0x", v:%x, "\n";   // free-running counter
+        v = __readMemory32(0x4001100C, "Memory"); __fmessage f, "GPIOC_ODR=0x", v:%x, "\n";   // PC13 = bit13
+        __fmessage f, "----\n";
+
+        __closeFile(f);
+        __message "dumpTim1: wrote Buoi11 registers to runtime.log";
+    }
+    else
+    {
+        __message "dumpTim1: cannot open runtime.log";
+    }
+}
