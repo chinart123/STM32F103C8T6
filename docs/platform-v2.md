@@ -111,6 +111,27 @@ user gõ yêu cầu
 frontmatter vài báo cáo → `detected-issues` lọc theo `scope` — vài nghìn token
 là nắm toàn bộ lịch sử dự án. Đúng luật "feed slices".
 
+### 3.1 Definition of Done — nghiệm thu MỖI yêu cầu ⭐
+
+Một yêu cầu chỉ được báo "xong" khi rà đủ checklist dưới đây; mục nào có
+*điều kiện* mà không áp dụng thì phải nói rõ vì sao (không im lặng bỏ qua):
+
+| # | Sản phẩm | Điều kiện |
+|---|----------|-----------|
+| 1 | `docs/detected-issues/` — entry KI-… mới (train AI + chỉ mục tra lỗi) | chỉ khi gặp bug hệ thống / toolchain / hardware |
+| 2 | `docs/` — tài liệu public (AI đọc kỹ; nhà tuyển dụng / dev đọc sơ) | luôn |
+| 3 | `Take note quá trình học thanh ghi/Buoi_N/` — `Note_N.txt` (văn phong note tay, tiếng Việt, **user duyệt trước khi commit**) + snapshot source `.c.txt` + bằng chứng debug (`capture.mac` / runtime log) | chỉ khi là buổi học firmware |
+| 4 | `_commitmsg_<n>.txt` (main, tiếng Anh, retention B1) + `_note_commitmsg_<n>.txt` (note, tiếng Việt, giữ đủ mọi đời) | luôn |
+| 5 | `reports/report_buoi_N.md` sinh bằng report-assembler + `INDEX.md` tự cập nhật (lên note branch) | luôn |
+| 6 | Bug **firmware-logic** → `bug_log.md` local (hard rule #5), KHÔNG vào detected-issues | khi có bug loại này |
+| 7 | Hình báo cáo qua figure skill (FIGURE-STANDARD + self-inspect); hình user duyệt → nhập `exemplars/` | khi báo cáo có hình |
+| 8 | CHECK CẶP §-commit main↔note (B2) trước push; push main→`origin` · note→`notes`, mỗi bước chờ lệnh riêng (B4) | luôn |
+
+Số § lẻ (ví dụ `§9.5`) là tiền lệ hợp lệ cho commit đắp bù chen giữa hai stage.
+Bốn lớp dấu vết mà checklist bảo đảm: máy học được (KB + frontmatter) · người
+tuyển dụng đọc sơ được (docs) · người học đọc sâu được (Buoi_N) · lịch sử git
+tự thuật (commitmsg).
+
 ## 4. Footprint cài thêm (per machine)
 
 | Công cụ | Vai trò |
@@ -129,6 +150,10 @@ là nắm toàn bộ lịch sử dự án. Đúng luật "feed slices".
    backup bằng `git add --sparse -f` lên note branch → remote private `notes`.
 2. **Báo cáo cũ (docx §6/§7) = di sản** — giữ nguyên chỗ, không đụng; `INDEX.md`
    bắt đầu từ báo cáo `.md` đầu tiên của platform mới.
+   ⚠️ "Di sản" có HAI mốc, đừng đọc lệch: *artifact báo cáo docx* = §6/§7;
+   *cặp main↔note chưa khớp* (theo B2) = §5–§7. Nội dung bên trong §1–§5
+   (code, note tay, KB) vẫn là tài sản học tập được kế thừa — "di sản" chỉ có
+   nghĩa là không hồi tố sửa artifact cũ hay ép cặp commit cũ cho khớp.
 3. **Trường `scope:`** thêm vào KB bằng một §-commit docs riêng, tự chứa trên main.
 4. **Đa model:** style contract là file `.md` thường (`FIGURE-STANDARD.md`);
    SKILL.md của Claude chỉ wrap + trỏ vào.
