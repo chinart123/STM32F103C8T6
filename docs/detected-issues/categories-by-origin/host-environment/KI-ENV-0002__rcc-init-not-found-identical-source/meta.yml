@@ -1,6 +1,7 @@
 id: KI-ENV-0002
 title: 'Cùng source y hệt, RCC_Init không tìm thấy trên 1 máy'
 origin: [host-environment, toolchain]   # source giống hệt -> nghi artifact/config; language chỉ là ứng viên
+scope: toolchain                        # bước truy cụ thể là của IAR; bài học tổng quát ("source y hệt -> nghi artifact/config, không phải code") thì universal
 tool: { name: IAR EWARM, version: 'giai đoạn học Buoi_4 (chưa rõ bản)' }
 codes: []                               # chưa lưu mã lỗi chính xác
 phase: [compile, link]

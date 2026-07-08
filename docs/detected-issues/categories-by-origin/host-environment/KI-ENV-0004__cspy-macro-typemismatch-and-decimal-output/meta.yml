@@ -1,6 +1,7 @@
 id: KI-ENV-0004
 title: 'capture.mac (C-SPY macro) sai cú pháp -> log rỗng 0 byte; và quên format HEX -> in thập phân'
 origin: [host-environment, toolchain]   # script host của mình chạy trên C-SPY của IAR
+scope: toolchain                        # cú pháp macro là đặc sản C-SPY/IAR — rời IAR là hết áp dụng trực tiếp
 tool: { name: IAR C-SPY (EWARM), version: 'EW 8.3 / armproc 8.40.1' }
 codes: ['Type mismatch']                # capture.mac(48,11): Error: Type mismatch.
 phase: [runtime]                        # macro chạy phía host lúc debug (không phải compile firmware)

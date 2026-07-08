@@ -23,6 +23,20 @@ Các nhóm origin nằm gọn dưới thư mục trung gian **`categories-by-ori
 Danh sách này **mở** — gặp loại mới thì thêm thư mục + hàng ở đây. Một lỗi có thể
 mang **nhiều `origin`** (đa tag trong `meta.yml`).
 
+## Phạm vi kế thừa (`scope`) — chìa khóa khi đổi MCU/IDE
+Mỗi `meta.yml` có thêm trường `scope:` trả lời câu hỏi *"đổi sang MCU/IDE khác,
+bài học này còn giá trị không?"*:
+
+| scope | Nghĩa | Khi chuyển MCU (vd ESP32-S3) |
+|-------|-------|------------------------------|
+| `universal` | đúng ở mọi toolchain/MCU/quy trình | **mang theo nguyên vẹn** |
+| `toolchain` | gắn với toolchain/IDE hiện tại (IAR…) | mang theo NẾU còn dùng toolchain đó |
+| `mcu-specific` | gắn với silicon hiện tại (STM32F103, errata…) | bỏ lại |
+| `process` | bài học về quy trình làm việc / git / tổ chức repo | **mang theo nguyên vẹn** |
+
+AI mới vào dự án (hoặc dự án MCU mới) lọc `scope != mcu-specific` là kế thừa sạch
+kho bài học. Xem thiết kế tổng ở `docs/platform-v2.md`.
+
 ## Mã định danh
 `KI-<CÔNG_CỤ|MIỀN>-<NNNN>` + slug mô tả. Đánh số **tăng dần toàn kho**.
 Ví dụ: `KI-IAR-0001`, `KI-ENV-0002`, `KI-GIT-0003`.
@@ -31,7 +45,7 @@ Ví dụ: `KI-IAR-0001`, `KI-ENV-0002`, `KI-GIT-0003`.
 | File | Vai trò |
 |------|---------|
 | `README.md` | Phân tích: triệu chứng → chuỗi nguyên nhân → **snippet + vị trí hiện tại** → fix → bài học |
-| `meta.yml` | Máy đọc: id, mã lỗi, tool+phiên bản, origin, severity, **mốc thời gian có giờ**, tag |
+| `meta.yml` | Máy đọc: id, mã lỗi, tool+phiên bản, origin, **scope**, severity, **mốc thời gian có giờ**, tag |
 | `error.log` | Output **NGUYÊN VĂN** của công cụ (không sửa) |
 | `refs/<tên-tài-liệu>.md` | Mỗi tài liệu hãng 1 file, **đặt tên theo tài liệu**: định danh + trích đoạn + liên hệ bug + snippet/vị trí |
 

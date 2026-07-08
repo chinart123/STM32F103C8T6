@@ -1,6 +1,7 @@
 id: KI-IAR-0001
 title: '"time.h" cục bộ bị header chuẩn <time.h> che mất'
 origin: [toolchain, language]
+scope: universal               # đặt tên header trùng header chuẩn C là bẫy ở MỌI toolchain/MCU
 tool: { name: IAR EWARM, version: '8.3' }
 codes: [Pe223, Li005]
 phase: [compile, link]

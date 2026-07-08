@@ -1,6 +1,7 @@
 id: KI-GIT-0003
 title: 'URL remote kẹt tên cũ (108) sau khi đổi tên repo GitHub thành 103'
 origin: [vcs-git]                        # Git/GitHub — công cụ quản lý phiên bản; danh sách origin MỞ
+scope: universal                         # git độc lập MCU/IDE — bài học "server state ≠ local config" mang theo mọi project
 tool: { name: 'Git + GitHub', version: '' }
 codes: []                                # git không có mã lỗi; dấu hiệu = "This repository moved"
 phase: [push]                            # xảy ra lúc git push (ngoài chu trình build firmware)

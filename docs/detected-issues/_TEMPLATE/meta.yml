@@ -1,6 +1,7 @@
 id: KI-XXX-NNNN
 title: '<tiêu đề>'
 origin: [toolchain]            # toolchain | language | filesystem | hardware | host-environment (đa tag được)
+scope: universal               # universal | toolchain | mcu-specific | process — bài học còn giá trị ở phạm vi nào khi đổi MCU/IDE
 tool: { name: IAR EWARM, version: '8.3' }
 codes: []                      # vd [Pe223, Li005]; để [] nếu chưa lưu
 phase: [compile]               # preprocess | compile | link | flash | runtime

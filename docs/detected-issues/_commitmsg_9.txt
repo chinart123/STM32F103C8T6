@@ -1,0 +1,26 @@
+§9 docs(detected-issues): add scope: field — lesson portability across MCU/IDE
+
+Every `meta.yml` in the KB now carries a `scope:` field answering one question:
+"if this project moves to a different MCU/IDE, does this lesson still apply?"
+
+Values: `universal` (carries over everywhere) | `toolchain` (only while the same
+toolchain/IDE is used) | `mcu-specific` (dies with the silicon) | `process`
+(workflow/git/repo lessons — carries over everywhere). A future brain starting the
+next MCU (e.g. ESP32-S3) filters `scope != mcu-specific` and inherits the rest.
+
+Classified the four existing entries:
+- KI-IAR-0001 -> universal   (naming a header after a standard C header bites anywhere)
+- KI-ENV-0002 -> toolchain   (IAR-specific hunt steps; the general "identical source ->
+                              suspect artifacts/config, not code" lesson is universal)
+- KI-GIT-0003 -> universal   (git server-state vs local-config, MCU-independent)
+- KI-ENV-0004 -> toolchain   (C-SPY macro language is IAR-only)
+
+Also: `_TEMPLATE/meta.yml` gained the field with an inline value guide, and README.md
+documents the scope table + the migration filter rule.
+
+§-section convention: this file `_commitmsg_9.txt` IS this commit's message
+(`git commit -F`). Per the retention rule, main keeps only the newest `_commitmsg`
+at HEAD (`docs/_commitmsg_8.txt` removed in this commit); the notes branch keeps all.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01J1qdUYnDKigoVSwxMgvXEG
