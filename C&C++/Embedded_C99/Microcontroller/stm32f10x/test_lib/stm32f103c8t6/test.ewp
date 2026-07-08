@@ -2136,7 +2136,7 @@
             <name>$PROJ_DIR$\..\..\..\1_Application\led\led.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\source\main.c</name>
+            <name>$PROJ_DIR$\source\main_buoi11_tim1.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\source\startup_stm32f103cx.s</name>
