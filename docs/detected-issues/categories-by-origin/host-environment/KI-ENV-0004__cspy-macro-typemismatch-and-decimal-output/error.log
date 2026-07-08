@@ -1,0 +1,31 @@
+# NGUYÊN VĂN — trích View > Messages > Debug Log của IAR C-SPY (EW 8.3, ST-Link V2 SWD).
+# Macro capture.mac được nạp OK, nhưng dumpTim1() chết ngay tại dòng 48 (if (f == 0)).
+
+Wed Jul 08, 2026 09:20:59: Loaded macro file: D:\libraries\Log-and-Report-writing-tools\skills\runtime-capture\capture.mac
+Wed Jul 08, 2026 09:20:59: Hardware reset with strategy 2 was performed
+Wed Jul 08, 2026 09:23:24: D:\libraries\Log-and-Report-writing-tools\skills\runtime-capture\capture.mac(48,11): Error: Type mismatch.
+Wed Jul 08, 2026 09:23:25: D:\libraries\Log-and-Report-writing-tools\skills\runtime-capture\capture.mac(48,11): Error: Type mismatch.
+Wed Jul 08, 2026 09:23:33: D:\libraries\Log-and-Report-writing-tools\skills\runtime-capture\capture.mac(48,11): Error: Type mismatch.
+Wed Jul 08, 2026 09:23:36: D:\libraries\Log-and-Report-writing-tools\skills\runtime-capture\capture.mac(48,11): Error: Type mismatch.
+Wed Jul 08, 2026 09:24:20: D:\libraries\Log-and-Report-writing-tools\skills\runtime-capture\capture.mac(48,11): Error: Type mismatch.
+Wed Jul 08, 2026 09:24:25: D:\libraries\Log-and-Report-writing-tools\skills\runtime-capture\capture.mac(48,11): Error: Type mismatch.
+Wed Jul 08, 2026 09:24:35: D:\libraries\Log-and-Report-writing-tools\skills\runtime-capture\capture.mac(48,11): Error: Type mismatch.
+
+# Dòng 48 lúc đó:  if (f == 0) { __message "dumpTim1: cannot open runtime.log"; return; }
+# Cột 11 = toán tử '=='  ->  so file-handle (kiểu riêng) với int 0  ->  Type mismatch.
+
+# ---------------------------------------------------------------------------
+# NGUYÊN VĂN — runtime.log sau khi qua được lỗi A nhưng CHƯA sửa lỗi B (in thập phân):
+
+-- Buoi11 TIM1 capture --
+NVIC_ISER0=0
+RCC_APB2ENR=2064
+TIM1_CR1=1
+TIM1_DIER=1
+TIM1_SR=31
+TIM1_CNT=106
+GPIOC_ODR=8192
+----
+
+# 2064=0x810, 31=0x1F, 8192=0x2000 — đúng giá trị, nhưng ở hệ thập phân nên khó đối chiếu bit.
+# Sau khi thêm format v:%x, cùng vị trí in ra: NVIC_ISER0=0x02000000, TIM1_SR=0x1E, GPIOC_ODR=0x00002000.

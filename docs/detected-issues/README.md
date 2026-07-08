@@ -49,3 +49,4 @@ Copy `_TEMPLATE/` (ở gốc kho) để tạo entry mới, đặt vào
 | [KI-IAR-0001](categories-by-origin/toolchain-iar/KI-IAR-0001__time-h-shadows-standard-header/) | `time.h` cục bộ bị `<time.h>` chuẩn che mất | toolchain, language | fixed |
 | [KI-ENV-0002](categories-by-origin/host-environment/KI-ENV-0002__rcc-init-not-found-identical-source/) | Cùng source, `RCC_Init` không tìm thấy trên 1 máy | host-environment, toolchain | open |
 | [KI-GIT-0003](categories-by-origin/vcs-git/KI-GIT-0003__stale-remote-url-after-github-rename/) | URL remote kẹt tên cũ (108) sau khi đổi tên repo GitHub (103) | vcs-git | fixed |
+| [KI-ENV-0004](categories-by-origin/host-environment/KI-ENV-0004__cspy-macro-typemismatch-and-decimal-output/) | Macro C-SPY `capture.mac`: `if (f==0)` sai kiểu → log rỗng; quên `:%x` → in thập phân | host-environment, toolchain | fixed |

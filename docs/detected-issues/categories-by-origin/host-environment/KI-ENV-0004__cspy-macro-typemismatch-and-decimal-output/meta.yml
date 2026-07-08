@@ -1,0 +1,16 @@
+id: KI-ENV-0004
+title: 'capture.mac (C-SPY macro) sai cú pháp -> log rỗng 0 byte; và quên format HEX -> in thập phân'
+origin: [host-environment, toolchain]   # script host của mình chạy trên C-SPY của IAR
+tool: { name: IAR C-SPY (EWARM), version: 'EW 8.3 / armproc 8.40.1' }
+codes: ['Type mismatch']                # capture.mac(48,11): Error: Type mismatch.
+phase: [runtime]                        # macro chạy phía host lúc debug (không phải compile firmware)
+severity: runtime-fault                 # không chặn build; làm hỏng việc bắt log runtime
+status: fixed
+novelty: common                         # đúng đặc tả C-SPY macro; ai đọc kỹ doc là tránh được
+references_found: yes
+timeline:
+  discovered_at: '2026-07-08 09:23 (+07:00)'   # Debug Log lần đầu báo Type mismatch
+  resolved_at:   '2026-07-08 10:05 (+07:00)'   # sửa macro, user chạy lại ra HEX
+  documented_at: '2026-07-08 10:45 (+07:00)'
+fixed_by: "dùng `if (f)` thay `if (f == 0)`; thêm format `v:%x` để in HEX"
+tags: [iar-cspy, macro, __openFile, file-handle, type-mismatch, __fmessage, radix, hex, runtime-capture, swd]
