@@ -51,6 +51,8 @@ never breaks the build.
 
 ## Pointers
 - Coding standard → `STANDARD.md`
+- Platform blueprint (session reports · figure skill · KB `scope:` · invariants B1–B5)
+  → `docs/platform-v2.md`
 - Skills (each is a thin wrapper over a CLI script) → `Log-and-Report-writing-tools/skills/`
 - Bug history → `Log-and-Report-writing-tools/logs/bug_log.md`
 - Datasheets (local) → `docs/datasheets/`  ·  archived design → `docs/archive/`
