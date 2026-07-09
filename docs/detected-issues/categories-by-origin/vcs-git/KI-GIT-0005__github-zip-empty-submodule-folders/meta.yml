@@ -1,0 +1,17 @@
+id: KI-GIT-0005
+title: 'Repo GitHub chứa submodule: tải ZIP → 22 thư mục RỖNG; đem repo clone vào repo khác → git từ chối track (embedded repo)'
+origin: [vcs-git]                        # Git/GitHub — cơ chế submodule + archive
+scope: universal                         # đúng với MỌI repo có submodule, mọi MCU/IDE — bài học mang theo trọn đời
+tool: { name: 'Git + GitHub', version: '' }
+codes: []                                # không có mã lỗi; dấu hiệu = thư mục rỗng im lặng / cảnh báo "adding embedded git repository"
+phase: [clone]                           # xảy ra lúc lấy source về, TRƯỚC cả preprocess/compile
+severity: build-blocker                  # nếu dính bẫy 1: thiếu toàn bộ HAL/CMSIS → không thể build bất cứ gì
+status: mitigated                        # nhận diện TRƯỚC khi dính (chưa từng ăn lỗi thật) — né chủ động
+novelty: common                          # bẫy kinh điển với người mới dùng GitHub
+references_found: yes
+timeline:
+  discovered_at: '2026-07-09 (nhận diện chủ động khi lập kế hoạch nhập kho STM32CubeF1 vào Manufacturer_Package/)'
+  resolved_at:   '2026-07-09 (clone --recursive --depth 1 --shallow-submodules; xóa .git/.gitmodules con; verify 0 sót)'
+  documented_at: '2026-07-09'
+fixed_by: 'git clone --recursive --depth 1 --shallow-submodules <url> rồi xóa mọi .git con TRƯỚC khi git add vào repo mẹ'
+tags: [git, github, submodule, download-zip, empty-folders, nested-repo, embedded-repository, stm32cubef1, vendor-package]

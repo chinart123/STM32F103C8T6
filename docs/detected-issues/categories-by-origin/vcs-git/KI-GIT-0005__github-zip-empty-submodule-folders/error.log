@@ -1,0 +1,95 @@
+﻿Cloning into 'D:\libraries\Manufacturer_Package\STM32CubeF1'...
+Submodule 'Drivers/BSP/Components/Common' (https://github.com/STMicroelectronics/stm32-bsp-common.git) registered for path 'Drivers/BSP/Components/Common'
+Submodule 'Drivers/BSP/Components/ak4343' (https://github.com/STMicroelectronics/stm32-ak4343.git) registered for path 'Drivers/BSP/Components/ak4343'
+Submodule 'Drivers/BSP/Components/cs43l22' (https://github.com/STMicroelectronics/stm32-cs43l22.git) registered for path 'Drivers/BSP/Components/cs43l22'
+Submodule 'Drivers/BSP/Components/hx8347d' (https://github.com/STMicroelectronics/stm32-hx8347d.git) registered for path 'Drivers/BSP/Components/hx8347d'
+Submodule 'Drivers/BSP/Components/ili9320' (https://github.com/STMicroelectronics/stm32-ili9320.git) registered for path 'Drivers/BSP/Components/ili9320'
+Submodule 'Drivers/BSP/Components/ili9325' (https://github.com/STMicroelectronics/stm32-ili9325.git) registered for path 'Drivers/BSP/Components/ili9325'
+Submodule 'Drivers/BSP/Components/lis302dl' (https://github.com/STMicroelectronics/stm32-lis302dl.git) registered for path 'Drivers/BSP/Components/lis302dl'
+Submodule 'Drivers/BSP/Components/spfd5408' (https://github.com/STMicroelectronics/stm32-spfd5408.git) registered for path 'Drivers/BSP/Components/spfd5408'
+Submodule 'Drivers/BSP/Components/st7735' (https://github.com/STMicroelectronics/stm32-st7735.git) registered for path 'Drivers/BSP/Components/st7735'
+Submodule 'Drivers/BSP/Components/stlm75' (https://github.com/STMicroelectronics/stm32-stlm75.git) registered for path 'Drivers/BSP/Components/stlm75'
+Submodule 'Drivers/BSP/Components/stmpe811' (https://github.com/STMicroelectronics/stm32-stmpe811.git) registered for path 'Drivers/BSP/Components/stmpe811'
+Submodule 'Drivers/BSP/STM3210C_EVAL' (https://github.com/STMicroelectronics/stm3210c-eval-bsp.git) registered for path 'Drivers/BSP/STM3210C_EVAL'
+Submodule 'Drivers/BSP/STM3210E_EVAL' (https://github.com/STMicroelectronics/stm3210e-eval-bsp.git) registered for path 'Drivers/BSP/STM3210E_EVAL'
+Submodule 'Drivers/BSP/STM32F1xx_Nucleo' (https://github.com/STMicroelectronics/stm32f1xx-nucleo-bsp.git) registered for path 'Drivers/BSP/STM32F1xx_Nucleo'
+Submodule 'Drivers/BSP/STM32VL-Discovery' (https://github.com/STMicroelectronics/stm32vldiscovery-bsp.git) registered for path 'Drivers/BSP/STM32VL-Discovery'
+Submodule 'Drivers/CMSIS/Device/ST/STM32F1xx' (https://github.com/STMicroelectronics/cmsis_device_f1.git) registered for path 'Drivers/CMSIS/Device/ST/STM32F1xx'
+Submodule 'Drivers/STM32F1xx_HAL_Driver' (https://github.com/STMicroelectronics/stm32f1xx_hal_driver.git) registered for path 'Drivers/STM32F1xx_HAL_Driver'
+Submodule 'Middlewares/ST/STM32_USB_Device_Library' (https://github.com/STMicroelectronics/stm32-mw-usb-device.git) registered for path 'Middlewares/ST/STM32_USB_Device_Library'
+Submodule 'Middlewares/ST/STM32_USB_Host_Library' (https://github.com/STMicroelectronics/stm32-mw-usb-host.git) registered for path 'Middlewares/ST/STM32_USB_Host_Library'
+Submodule 'Middlewares/Third_Party/FatFs' (https://github.com/STMicroelectronics/stm32-mw-fatfs.git) registered for path 'Middlewares/Third_Party/FatFs'
+Submodule 'Middlewares/Third_Party/FreeRTOS' (https://github.com/STMicroelectronics/stm32-mw-freertos.git) registered for path 'Middlewares/Third_Party/FreeRTOS'
+Submodule 'Middlewares/Third_Party/LwIP' (https://github.com/STMicroelectronics/stm32-mw-lwip.git) registered for path 'Middlewares/Third_Party/LwIP'
+Cloning into 'D:/libraries/Manufacturer_Package/STM32CubeF1/Drivers/BSP/Components/Common'...
+Cloning into 'D:/libraries/Manufacturer_Package/STM32CubeF1/Drivers/BSP/Components/ak4343'...
+Cloning into 'D:/libraries/Manufacturer_Package/STM32CubeF1/Drivers/BSP/Components/cs43l22'...
+Cloning into 'D:/libraries/Manufacturer_Package/STM32CubeF1/Drivers/BSP/Components/hx8347d'...
+Cloning into 'D:/libraries/Manufacturer_Package/STM32CubeF1/Drivers/BSP/Components/ili9320'...
+Cloning into 'D:/libraries/Manufacturer_Package/STM32CubeF1/Drivers/BSP/Components/ili9325'...
+Cloning into 'D:/libraries/Manufacturer_Package/STM32CubeF1/Drivers/BSP/Components/lis302dl'...
+Cloning into 'D:/libraries/Manufacturer_Package/STM32CubeF1/Drivers/BSP/Components/spfd5408'...
+Cloning into 'D:/libraries/Manufacturer_Package/STM32CubeF1/Drivers/BSP/Components/st7735'...
+Cloning into 'D:/libraries/Manufacturer_Package/STM32CubeF1/Drivers/BSP/Components/stlm75'...
+Cloning into 'D:/libraries/Manufacturer_Package/STM32CubeF1/Drivers/BSP/Components/stmpe811'...
+Cloning into 'D:/libraries/Manufacturer_Package/STM32CubeF1/Drivers/BSP/STM3210C_EVAL'...
+Cloning into 'D:/libraries/Manufacturer_Package/STM32CubeF1/Drivers/BSP/STM3210E_EVAL'...
+Cloning into 'D:/libraries/Manufacturer_Package/STM32CubeF1/Drivers/BSP/STM32F1xx_Nucleo'...
+Cloning into 'D:/libraries/Manufacturer_Package/STM32CubeF1/Drivers/BSP/STM32VL-Discovery'...
+Cloning into 'D:/libraries/Manufacturer_Package/STM32CubeF1/Drivers/CMSIS/Device/ST/STM32F1xx'...
+Cloning into 'D:/libraries/Manufacturer_Package/STM32CubeF1/Drivers/STM32F1xx_HAL_Driver'...
+Cloning into 'D:/libraries/Manufacturer_Package/STM32CubeF1/Middlewares/ST/STM32_USB_Device_Library'...
+Cloning into 'D:/libraries/Manufacturer_Package/STM32CubeF1/Middlewares/ST/STM32_USB_Host_Library'...
+Cloning into 'D:/libraries/Manufacturer_Package/STM32CubeF1/Middlewares/Third_Party/FatFs'...
+Cloning into 'D:/libraries/Manufacturer_Package/STM32CubeF1/Middlewares/Third_Party/FreeRTOS'...
+Cloning into 'D:/libraries/Manufacturer_Package/STM32CubeF1/Middlewares/Third_Party/LwIP'...
+From https://github.com/STMicroelectronics/stm32-bsp-common
+ * branch            1e18c5afdf1f5971a35c8e2f88b6a21e5568ed92 -> FETCH_HEAD
+Submodule path 'Drivers/BSP/Components/Common': checked out '1e18c5afdf1f5971a35c8e2f88b6a21e5568ed92'
+From https://github.com/STMicroelectronics/stm32-ak4343
+ * branch            ca1d875d09049a161002efa8b07e4d8965aa7fd8 -> FETCH_HEAD
+Submodule path 'Drivers/BSP/Components/ak4343': checked out 'ca1d875d09049a161002efa8b07e4d8965aa7fd8'
+Submodule path 'Drivers/BSP/Components/cs43l22': checked out '5d4f2cbd223a3fdd76a222e64fa81ec379abc444'
+From https://github.com/STMicroelectronics/stm32-hx8347d
+ * branch            c4af83ef9605a14b0fbd2401bec36561c23128a1 -> FETCH_HEAD
+Submodule path 'Drivers/BSP/Components/hx8347d': checked out 'c4af83ef9605a14b0fbd2401bec36561c23128a1'
+From https://github.com/STMicroelectronics/stm32-ili9320
+ * branch            7a844fe9fca8eb3ace5c773a59afd556610fd86c -> FETCH_HEAD
+Submodule path 'Drivers/BSP/Components/ili9320': checked out '7a844fe9fca8eb3ace5c773a59afd556610fd86c'
+From https://github.com/STMicroelectronics/stm32-ili9325
+ * branch            29e24e2114f926b04f29b576311a575a5a4e34b2 -> FETCH_HEAD
+Submodule path 'Drivers/BSP/Components/ili9325': checked out '29e24e2114f926b04f29b576311a575a5a4e34b2'
+Submodule path 'Drivers/BSP/Components/lis302dl': checked out '3b862c1b3a63bc355c52ef173e9589ccf978c852'
+From https://github.com/STMicroelectronics/stm32-spfd5408
+ * branch            0d42749f086108e82aef4401e1cccc7f2da4d552 -> FETCH_HEAD
+Submodule path 'Drivers/BSP/Components/spfd5408': checked out '0d42749f086108e82aef4401e1cccc7f2da4d552'
+From https://github.com/STMicroelectronics/stm32-st7735
+ * branch            ec182ba5bc71fc0285423c5a2c95374425ead9c5 -> FETCH_HEAD
+Submodule path 'Drivers/BSP/Components/st7735': checked out 'ec182ba5bc71fc0285423c5a2c95374425ead9c5'
+From https://github.com/STMicroelectronics/stm32-stlm75
+ * branch            e27eaee31dbe516f0a8eecadc88c902eba59e78e -> FETCH_HEAD
+Submodule path 'Drivers/BSP/Components/stlm75': checked out 'e27eaee31dbe516f0a8eecadc88c902eba59e78e'
+From https://github.com/STMicroelectronics/stm32-stmpe811
+ * branch            e99670f7266e86bf0e65dad3ce4b47660dac7a10 -> FETCH_HEAD
+Submodule path 'Drivers/BSP/Components/stmpe811': checked out 'e99670f7266e86bf0e65dad3ce4b47660dac7a10'
+Submodule path 'Drivers/BSP/STM3210C_EVAL': checked out 'bb1cf1963243e58f4c99401e0aa28e7505298968'
+Submodule path 'Drivers/BSP/STM3210E_EVAL': checked out '6b36c9912e39594ef9fba24d1e218b8dc3e62a2d'
+Submodule path 'Drivers/BSP/STM32F1xx_Nucleo': checked out '7cf1eeded2cf3c8c441b685bb60f696544ba285a'
+Submodule path 'Drivers/BSP/STM32VL-Discovery': checked out 'f0980259a1b2c09a61900bfe5dd222cff6d027e3'
+Submodule path 'Drivers/CMSIS/Device/ST/STM32F1xx': checked out 'c8e9a4a4f16b6d2cb2a2083cbe5161025280fb22'
+Submodule path 'Drivers/STM32F1xx_HAL_Driver': checked out 'c3f749241cd2d55074b60775c77824d0eb13b931'
+From https://github.com/STMicroelectronics/stm32-mw-usb-device
+ * branch            e5a58ee2260204bfed632c7c56da0fdb41514a51 -> FETCH_HEAD
+Submodule path 'Middlewares/ST/STM32_USB_Device_Library': checked out 'e5a58ee2260204bfed632c7c56da0fdb41514a51'
+From https://github.com/STMicroelectronics/stm32-mw-usb-host
+ * branch            5fa4ac51c51b71f630f8efa60d027eacc35ff5d7 -> FETCH_HEAD
+Submodule path 'Middlewares/ST/STM32_USB_Host_Library': checked out '5fa4ac51c51b71f630f8efa60d027eacc35ff5d7'
+From https://github.com/STMicroelectronics/stm32-mw-fatfs
+ * branch            cc60dc45ce56439ab25032389084d12b5ad5f64e -> FETCH_HEAD
+Submodule path 'Middlewares/Third_Party/FatFs': checked out 'cc60dc45ce56439ab25032389084d12b5ad5f64e'
+From https://github.com/STMicroelectronics/stm32-mw-freertos
+ * branch            cdc07b553ee9a9676988e5089a1d484da5d37c9c -> FETCH_HEAD
+Submodule path 'Middlewares/Third_Party/FreeRTOS': checked out 'cdc07b553ee9a9676988e5089a1d484da5d37c9c'
+From https://github.com/STMicroelectronics/stm32-mw-lwip
+ * branch            87309ee83b0c409b63ab0977f521a125e022b407 -> FETCH_HEAD
+Submodule path 'Middlewares/Third_Party/LwIP': checked out '87309ee83b0c409b63ab0977f521a125e022b407'
