@@ -1,0 +1,30 @@
+§11 feat(vendor): import STM32CubeF1 warehouse as-is — two-track learning begins
+
+Imports the official STMicroelectronics STM32CubeF1 firmware package (BSD-3-Clause,
+ST's LICENSE.md kept in place) into `Manufacturer_Package/STM32CubeF1/`, verbatim:
+
+- Cloned with `--recursive --depth 1` (the GitHub repo keeps its drivers as git
+  submodules — a plain "Download ZIP" yields EMPTY driver folders); all nested
+  `.git` metadata deleted so THIS repo tracks every vendor file individually.
+- `Manufacturer_Package/SIZE-CHECK.md`: per-folder largest-file audit — biggest
+  file in the whole package is 13.06 MB (`arm_cortexM3b_math.lib`), far under
+  GitHub's 100 MB/file hard limit. Total ~184 MB, accepted by design (learning
+  repo, storage optimization is explicitly a non-goal).
+- New root `README.md`: project intro + provenance section making explicit which
+  code is ST's and which is hand-written.
+
+Purpose (user decision 2026-07-09): two-track learning. The hard rule NO HAL /
+NO LL for `C&C++/` stays untouched — vendor files live only in this warehouse.
+The next commit rearranges the files that have hand-written counterparts into
+`No.0_C&C++_Industrial_Draft/` (a structural mirror of `C&C++/`); files without
+a counterpart stay here until a lesson creates one. Import and rearrangement are
+split into two commits deliberately, so `git log --follow` can prove exactly
+when each vendor file was "touched by study" — that history becomes the
+knowledge-progress metric charted in future session reports.
+
+§-section convention: this file `_commitmsg_11.txt` IS this commit's message
+(`git commit -F`). Per retention rule B1, `docs/_commitmsg_10.txt` is removed
+in this commit; the notes branch keeps all of its own message files.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01XREkaAL5M7JJfbY1oBvu31
