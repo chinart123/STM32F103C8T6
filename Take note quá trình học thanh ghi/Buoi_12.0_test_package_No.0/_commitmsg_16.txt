@@ -1,0 +1,49 @@
+§16 feat(vendor-test): Buoi_12.0 smoke-test PASSES on board — gutted warehouse is alive
+
+First end-to-end proof that the gutted vendor warehouse (No.0 Draft) compiles,
+links and RUNS: 4 techniques x 5 button gestures on one firmware, confirmed on
+the board by the user (boot heartbeat + gestures on PA0).
+
+- Take note .../Buoi_12.0_test_package_No.0/
+  - Huong_dan_test_No.0.md : the test guide — plain-language primers (what an
+    IAR build configuration is; what NO HAL / NO LL means; the FULL API layer
+    stack raw->CMSIS->SPL(dead)->LL->HAL->middleware with per-STM32-line support
+    — new knowledge the user asked to keep), MODE table, IAR recipe,
+    expectation/first-suspect table, and the on-board bug story (PB13 vs PA0)
+    with a pointer to the local bug log; section 4 deliberately POINTS to the
+    real source file instead of duplicating it (a stale embedded listing
+    already caused the PB13/PA0 confusion once).
+  - fig_12_0_architecture.png : one shared gesture engine feeding four LED
+    technique layers (TikZ, figure-skill self-inspect loop, 4 rounds — the
+    final round applied the "fails twice -> simplify" rule to a label).
+  - fig_12_0_coverage.png : warehouse coverage after the test — 7/53 Draft
+    files touched (13.2%): ll_bus.h, ll_gpio.h/.c, ll_tim.h/.c, ll_exti.h/.c.
+- Manufacturer_Package/No.0_.../1_Application/main_buoi12_0_test.c : the test
+  firmware. MODE 1 raw registers (comparison baseline) | 2 bit-band | 3 real
+  hardware PWM via LL_TIM_OC_* on TIM3_CH3->PB0 (PC13 is wired to no timer
+  channel — silicon limit, documented) | 4 button via EXTI0 + background blink
+  via TIM3 ISR. Shared gesture engine (TIM2 1 ms tick; x1/x2/x3 clicks,
+  2 s / 5 s holds). BTN_ACTIVE_LOW macro + 3-blink boot heartbeat added after
+  the on-board bug (code assumed the button on PB13 per Buoi_10 notes; the
+  real board has it on PA0 — logged in the local bug log as the session's
+  firmware-logic bug; total silence taught the heartbeat lesson).
+- C&C++/.../test.ewp : +5 vendor include paths and +2 defines (STM32F103xB,
+  USE_FULL_LL_DRIVER) in Debug, main swap (Buoi_11 -> test), new Vendor_LL
+  group registering the three gutted .c files so the LINKER must see them;
+  plus the user-created Debug_Vendor configuration (GUI). NO HAL/NO LL stands:
+  no vendor-calling source lives under C&C++/.
+
+Build: iarbuild, all 4 MODEs on Debug + MODE 4 on Debug_Vendor — 0 errors,
+0 warnings each. Run: user-confirmed on board ("code song roi").
+
+Findings recorded in the guide: (1) the cortex/NVIC layer has no Draft
+counterpart yet (NVIC_EnableIRQ borrowed from CMSIS); (2) pure-LL builds need
+no stm32f1xx_hal_conf.h — HAL (level 3 of the roadmap) will.
+
+§-section convention: this file `_commitmsg_16.txt` IS this commit's message
+(`git commit -F`). Per retention rule B1, `Take note quá trình học thanh
+ghi/Buoi_12/_commitmsg_14.txt` is removed in this commit; the notes branch
+keeps all of its own message files.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01XREkaAL5M7JJfbY1oBvu31
