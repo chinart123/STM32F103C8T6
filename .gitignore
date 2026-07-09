@@ -43,6 +43,9 @@ docs/datasheets/
 *.crun
 *.bak
 
+# --- Per-machine editor config (VS Code watcher/search tweaks): local only ---
+.vscode/
+
 # --- OS junk ---
 Thumbs.db
 Desktop.ini
