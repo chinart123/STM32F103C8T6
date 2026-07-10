@@ -1,0 +1,28 @@
+﻿$ git status --short -- "C&C++/Embedded_C99/Microcontroller/stm32f10x/test_lib/stm32f103c8t6/"
+ M C&C++/Embedded_C99/Microcontroller/stm32f10x/test_lib/stm32f103c8t6/test.ewd
+
+$ git diff --stat -- ".../test.ewd"
+ .../stm32f10x/test_lib/stm32f103c8t6/test.ewd      | 1481 ++++++++++++++++++++
+ 1 file changed, 1481 insertions(+)
+
+$ git diff ".../test.ewd" | head (trich 12 dong dau cua khoi IAR tu ghi):
+diff --git a/C&C++/Embedded_C99/Microcontroller/stm32f10x/test_lib/stm32f103c8t6/test.ewd b/C&C++/Embedded_C99/Microcontroller/stm32f10x/test_lib/stm32f103c8t6/test.ewd
+index 1b0cf92..8f36cd2 100644
+--- a/C&C++/Embedded_C99/Microcontroller/stm32f10x/test_lib/stm32f103c8t6/test.ewd
++++ b/C&C++/Embedded_C99/Microcontroller/stm32f10x/test_lib/stm32f103c8t6/test.ewd
+@@ -2963,4 +2963,1485 @@
+             </plugin>
+         </debuggerPlugins>
+     </configuration>
++    <configuration>
++        <name>Debug_Vendor</name>
++        <toolchain>
++            <name>ARM</name>
++        </toolchain>
++        <debug>1</debug>
++        <settings>
++            <name>C-SPY</name>
++            <archiveVersion>2</archiveVersion>
++            <data>
++                <version>31</version>
++                <wantNonLocal>1</wantNonLocal>

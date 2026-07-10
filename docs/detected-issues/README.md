@@ -65,3 +65,4 @@ Copy `_TEMPLATE/` (ở gốc kho) để tạo entry mới, đặt vào
 | [KI-GIT-0003](categories-by-origin/vcs-git/KI-GIT-0003__stale-remote-url-after-github-rename/) | URL remote kẹt tên cũ (108) sau khi đổi tên repo GitHub (103) | vcs-git | fixed |
 | [KI-ENV-0004](categories-by-origin/host-environment/KI-ENV-0004__cspy-macro-typemismatch-and-decimal-output/) | Macro C-SPY `capture.mac`: `if (f==0)` sai kiểu → log rỗng; quên `:%x` → in thập phân | host-environment, toolchain | fixed |
 | [KI-GIT-0005](categories-by-origin/vcs-git/KI-GIT-0005__github-zip-empty-submodule-folders/) | Repo có submodule: tải ZIP → 22 thư mục rỗng; repo lồng repo → git không track (embedded) | vcs-git | mitigated |
+| [KI-IAR-0006](categories-by-origin/toolchain-iar/KI-IAR-0006__ewd-debugger-file-churn-vs-ewp/) | `.ewp` (build) vs `.ewd` (debugger): IAR tự ghi +1481 dòng vào `.ewd` khi tạo config → luật không commit `.ewd` | toolchain | mitigated |

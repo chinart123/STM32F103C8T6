@@ -1,0 +1,17 @@
+id: KI-IAR-0006
+title: 'test.ewp vs test.ewd — IAR tách cấu hình BUILD và cấu hình DEBUGGER; .ewd bị IDE tự ghi lại (+1481 dòng khi tạo config) → luật không commit'
+origin: [toolchain]                      # IAR EWARM — cách IDE tổ chức file project
+scope: toolchain                         # gắn với IAR; đổi IDE thì bài học "tách build-config khỏi debug-config" vẫn mang theo ở mức ý tưởng
+tool: { name: IAR EWARM, version: '8.3' }
+codes: []                                # không có mã lỗi — hiện tượng là chữ "M" dai dẳng trong source control
+phase: [run]                             # KHÔNG thuộc compile/build — thuộc Download & Debug (nạp + gỡ lỗi)
+severity: cosmetic                       # không hỏng gì; rủi ro = commit rác config theo máy / bối rối "file gì đây"
+status: mitigated                        # chính sách từ §6: .ewd không commit; tùy chọn skip-worktree để ẩn chữ M
+novelty: common                          # đặc thù IAR, người mới nào cũng vấp
+references_found: yes
+timeline:
+  discovered_at: '2026-07-09 (phiên Buổi 12.0 — user tạo config Debug_Vendor trong GUI, git báo M cả test.ewp lẫn test.ewd; user hỏi "ủa cái này là sao?")'
+  resolved_at:   '2026-07-09 (xác định .ewd = cấu hình debugger theo máy, +1481 dòng do IAR tự ghi; giữ chính sách không commit)'
+  documented_at: '2026-07-09'
+fixed_by: 'Chỉ commit test.ewp; test.ewd để nguyên (hoặc git update-index --skip-worktree nếu muốn ẩn chữ M). Doc giáo dục chi tiết: Take note .../Buoi_12.0_test_package_No.0/Giai_thich_ewp_vs_ewd.md'
+tags: [iar, ewp, ewd, eww, project-file, debugger-config, build-config, git-hygiene, stlink, cspy]
