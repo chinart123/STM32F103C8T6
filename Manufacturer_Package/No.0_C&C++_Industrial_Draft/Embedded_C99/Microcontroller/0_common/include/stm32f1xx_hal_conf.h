@@ -33,40 +33,43 @@ extern "C" {
 /**
   * @brief This is the list of modules to be used in the HAL driver
   */
+/* TAILORED for No.0 Draft: only modules whose driver was gutted into the Draft
+ * are enabled. Anything not yet extracted stays commented out — leaving it on
+ * would #include a header that does not exist and break the build.            */
 #define HAL_MODULE_ENABLED
-#define HAL_ADC_MODULE_ENABLED
-#define HAL_CAN_MODULE_ENABLED
+/* #define HAL_ADC_MODULE_ENABLED */          /* not extracted */
+/* #define HAL_CAN_MODULE_ENABLED */          /* not extracted */
 /* #define HAL_CAN_LEGACY_MODULE_ENABLED */
-#define HAL_CEC_MODULE_ENABLED
+/* #define HAL_CEC_MODULE_ENABLED */          /* not extracted */
 #define HAL_CORTEX_MODULE_ENABLED
-#define HAL_CRC_MODULE_ENABLED
-#define HAL_DAC_MODULE_ENABLED
+/* #define HAL_CRC_MODULE_ENABLED */          /* not extracted */
+/* #define HAL_DAC_MODULE_ENABLED */          /* not extracted */
 #define HAL_DMA_MODULE_ENABLED
-#define HAL_ETH_MODULE_ENABLED
+/* #define HAL_ETH_MODULE_ENABLED */          /* not extracted */
 #define HAL_EXTI_MODULE_ENABLED
 #define HAL_FLASH_MODULE_ENABLED
 #define HAL_GPIO_MODULE_ENABLED
-#define HAL_HCD_MODULE_ENABLED
+/* #define HAL_HCD_MODULE_ENABLED */          /* not extracted */
 #define HAL_I2C_MODULE_ENABLED
-#define HAL_I2S_MODULE_ENABLED
-#define HAL_IRDA_MODULE_ENABLED
-#define HAL_IWDG_MODULE_ENABLED
-#define HAL_NAND_MODULE_ENABLED
-#define HAL_NOR_MODULE_ENABLED
-#define HAL_PCCARD_MODULE_ENABLED
-#define HAL_PCD_MODULE_ENABLED
+/* #define HAL_I2S_MODULE_ENABLED */          /* not extracted */
+/* #define HAL_IRDA_MODULE_ENABLED */         /* not extracted */
+/* #define HAL_IWDG_MODULE_ENABLED */         /* not extracted */
+/* #define HAL_NAND_MODULE_ENABLED */         /* not extracted */
+/* #define HAL_NOR_MODULE_ENABLED */          /* not extracted */
+/* #define HAL_PCCARD_MODULE_ENABLED */       /* not extracted */
+/* #define HAL_PCD_MODULE_ENABLED */          /* not extracted */
 #define HAL_PWR_MODULE_ENABLED
 #define HAL_RCC_MODULE_ENABLED
 #define HAL_RTC_MODULE_ENABLED
-#define HAL_SD_MODULE_ENABLED
-#define HAL_SMARTCARD_MODULE_ENABLED
+/* #define HAL_SD_MODULE_ENABLED */           /* not extracted */
+/* #define HAL_SMARTCARD_MODULE_ENABLED */    /* not extracted */
 #define HAL_SPI_MODULE_ENABLED
-#define HAL_SRAM_MODULE_ENABLED
+/* #define HAL_SRAM_MODULE_ENABLED */         /* not extracted */
 #define HAL_TIM_MODULE_ENABLED
 #define HAL_UART_MODULE_ENABLED
 #define HAL_USART_MODULE_ENABLED
-#define HAL_WWDG_MODULE_ENABLED
-#define HAL_MMC_MODULE_ENABLED
+/* #define HAL_WWDG_MODULE_ENABLED */         /* not extracted */
+/* #define HAL_MMC_MODULE_ENABLED */          /* not extracted */
 
 /* ########################## Oscillator Values adaptation ####################*/
 /**

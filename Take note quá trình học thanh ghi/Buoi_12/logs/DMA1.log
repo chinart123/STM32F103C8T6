@@ -1,0 +1,73 @@
+Name	Value	Access	
+ISR	0x00000007	ReadOnly	
+IFCR	WWWWWWWW	WriteOnly	
+CCR1	0x00004AC1	ReadWrite	
+     MEM2MEM	1	ReadWrite	
+     PL	0x0	ReadWrite	
+     MSIZE	0x2	ReadWrite	
+     PSIZE	0x2	ReadWrite	
+     MINC	1	ReadWrite	
+     PINC	1	ReadWrite	
+     CIRC	0	ReadWrite	
+     DIR	0	ReadWrite	
+     TEIE	0	ReadWrite	
+     HTIE	0	ReadWrite	
+     TCIE	0	ReadWrite	
+     EN	1	ReadWrite	
+CNDTR1	0x00000000	ReadWrite	
+     NDT	0x0000	ReadWrite	
+CPAR1	0x20000000	ReadWrite	
+     PA	0x20000000	ReadWrite	
+CMAR1	0x20000064	ReadWrite	
+     MA	0x20000064	ReadWrite	
+CCR2	0x00000000	ReadWrite	
+     MEM2MEM	0	ReadWrite	
+     PL	0x0	ReadWrite	
+     MSIZE	0x0	ReadWrite	
+     PSIZE	0x0	ReadWrite	
+     MINC	0	ReadWrite	
+     PINC	0	ReadWrite	
+     CIRC	0	ReadWrite	
+     DIR	0	ReadWrite	
+     TEIE	0	ReadWrite	
+     HTIE	0	ReadWrite	
+     TCIE	0	ReadWrite	
+     EN	0	ReadWrite	
+CNDTR2	0x00000000	ReadWrite	
+     NDT	0x0000	ReadWrite	
+CPAR2	0x00000000	ReadWrite	
+     PA	0x00000000	ReadWrite	
+CMAR2	0x00000000	ReadWrite	
+     MA	0x00000000	ReadWrite	
+CCR3	0x00000000	ReadWrite	
+     MEM2MEM	0	ReadWrite	
+     PL	0x0	ReadWrite	
+     MSIZE	0x0	ReadWrite	
+     PSIZE	0x0	ReadWrite	
+     MINC	0	ReadWrite	
+     PINC	0	ReadWrite	
+     CIRC	0	ReadWrite	
+     DIR	0	ReadWrite	
+     TEIE	0	ReadWrite	
+     HTIE	0	ReadWrite	
+     TCIE	0	ReadWrite	
+     EN	0	ReadWrite	
+CNDTR3	0x00000000	ReadWrite	
+CPAR3	0x00000000	ReadWrite	
+CMAR3	0x00000000	ReadWrite	
+CCR4	0x00000000	ReadWrite	
+CNDTR4	0x00000000	ReadWrite	
+CPAR4	0x00000000	ReadWrite	
+CMAR4	0x00000000	ReadWrite	
+CCR5	0x00000000	ReadWrite	
+CNDTR5	0x00000000	ReadWrite	
+CPAR5	0x00000000	ReadWrite	
+CMAR5	0x00000000	ReadWrite	
+CCR6	0x00000000	ReadWrite	
+CNDTR6	0x00000000	ReadWrite	
+CPAR6	0x00000000	ReadWrite	
+CMAR6	0x00000000	ReadWrite	
+CCR7	0x00000000	ReadWrite	
+CNDTR7	0x00000000	ReadWrite	
+CPAR7	0x00000000	ReadWrite	
+CMAR7	0x00000000	ReadWrite	

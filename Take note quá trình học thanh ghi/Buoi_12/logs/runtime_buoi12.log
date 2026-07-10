@@ -1,0 +1,49 @@
+# runtime_buoi12.log — Buổi 12 · Đề A (mem2mem) · STAGE 0_1 (HAL)
+# Nguồn: C-SPY (ST-Link V2, SWD thuần), config DMA_B12_S01_HAL — export ở logs/DMA1.log + LiveWatch-*.log
+# Ngày: 2026-07-10 · Kết quả: PASS trên board
+# (Chỉ giữ thanh ghi quan trọng. Kênh DMA1 2..7 = toàn 0 (không dùng) -> bỏ qua.)
+
+## Bảng 1 — DMA1 Channel 1 (kênh đang dùng), SAU khi chạy Stage01_MemToMem()
+| Thanh ghi       | Giá trị      | Ý nghĩa                                                     |
+|-----------------|--------------|------------------------------------------------------------|
+| DMA1_ISR        | 0x00000007   | cờ kênh 1: GIF1 + TCIF1 + HTIF1  ->  TCIF1=1 = transfer complete |
+| DMA1_CCR1       | 0x00004AC1   | cấu hình kênh (giải mã ở Bảng 2)                           |
+| DMA1_CNDTR1.NDT | 0x0000       | còn 0 word  ->  đã chuyển hết 8                            |
+| DMA1_CPAR1.PA   | 0x20000000   | địa chỉ NGUỒN = &g_src[0]                                  |
+| DMA1_CMAR1.MA   | 0x20000064   | địa chỉ ĐÍCH  = &g_dst[0]                                  |
+
+## Bảng 2 — Giải mã CCR1 = 0x00004AC1 (đọc thẳng bit-field từ logs/DMA1.log)
+| Bit-field       | Giá trị | Nghĩa                                    |
+|-----------------|---------|------------------------------------------|
+| MEM2MEM         | 1       | chép bộ nhớ -> bộ nhớ                     |
+| MSIZE           | 0b10    | ô ĐÍCH  32-bit (word)                    |
+| PSIZE           | 0b10    | ô NGUỒN 32-bit (word)                    |
+| MINC            | 1       | địa chỉ đích tự tăng                     |
+| PINC            | 1       | địa chỉ nguồn tự tăng                    |
+| CIRC            | 0       | one-shot (không vòng lặp)                |
+| DIR             | 0       | (bỏ qua khi MEM2MEM=1)                   |
+| PL              | 0b00    | ưu tiên thấp                             |
+| TCIE/HTIE/TEIE  | 0       | tắt hết ngắt (đúng luật Stage 0)         |
+| EN              | 1       | kênh đang bật                            |
+# -> khớp 100% với hdma.Init trong code HAL.
+
+## Bảng 3 — Kiểm chứng bộ nhớ (logs/LiveWatch-hexa.log): g_dst có = g_src không?
+| idx | g_src @0x2000_0000 | g_dst @0x2000_0064 | Khớp |
+|-----|--------------------|--------------------|------|
+| [0] | 0x11111111         | 0x11111111         | OK   |
+| [1] | 0x22222222         | 0x22222222         | OK   |
+| [2] | 0x33333333         | 0x33333333         | OK   |
+| [3] | 0x44444444         | 0x44444444         | OK   |
+| [4] | 0x55555555         | 0x55555555         | OK   |
+| [5] | 0x66666666         | 0x66666666         | OK   |
+| [6] | 0x77777777         | 0x77777777         | OK   |
+| [7] | 0x88888888         | 0x88888888         | OK   |
+# IAR Live Watch mặc định hệ thập phân (286331153 = 0x11111111); đổi hex: chuột phải -> Format -> Hexadecimal.
+
+## Ghi chú quan sát (quan trọng cho việc học)
+# 1. KHÔNG quan sát được CNDTR đếm lùi 8->0 bằng step/step-over/next: mem2mem KHÔNG có nhịp,
+#    8 word rip qua ở tốc độ bus (~8 chu kỳ AHB, <1 µs) -> mọi lần Halt đều đã thấy CNDTR=0.
+#    Bằng chứng "đã chạy" = CNDTR=0 + TCIF1=1 + g_dst đầy (KHÔNG phải nhìn nó đếm).
+# 2. Muốn TẬN MẮT thấy CNDTR đếm lùi từ từ -> phải là ĐỀ B (TIM->DMA): mỗi lần chép chờ 1 nhịp
+#    timer nên CNDTR tụt chậm, quan sát được. (bước kế tiếp)
+# 3. Cửa sổ Registers phải REFRESH (click 1 thanh ghi) mới hiện giá trị thật; ảnh "toàn 0" là chưa refresh.

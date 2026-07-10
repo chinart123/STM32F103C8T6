@@ -1,0 +1,17 @@
+id: KI-ENV-0007
+title: 'Chọn STAGE bằng #if STAGE == 0_1 (nhãn 0_1/0_2/0_3) → Pe014: nhãn không phải hằng số nguyên'
+origin: [language, host-environment]   # gốc kỹ thuật = đặc tả tiền xử lý C; lỗi do AI hiện thực sai, KHÔNG do lược đồ nhãn của user
+scope: universal                       # "#if chỉ ăn hằng số nguyên" đúng ở MỌI compiler C, không riêng IAR
+tool: { name: IAR EWARM, version: '8.3 (iarbuild V8.3.2.5988)' }
+codes: [Pe014, Pe035]                  # Pe014 x3 (#if/#elif) + Pe035 (rơi xuống #else #error)
+phase: [preprocess, compile]           # lỗi ở directive tiền xử lý, lộ ra lúc compile
+severity: build-blocker
+status: fixed
+novelty: common                        # quy tắc C cơ bản; ai nắm tiền xử lý là tránh được
+references_found: yes
+timeline:
+  discovered_at: '2026-07-10 15:05 (+07:00)'   # build đầu tiên của config DMA_B12_S01_HAL FAIL
+  resolved_at:   '2026-07-10 15:15 (+07:00)'   # đổi sang #ifdef, build 0/0
+  documented_at: '2026-07-10 17:35 (+07:00)'   # tái hiện lại verbatim + viết KB
+fixed_by: "đổi `#define STAGE 0_1` + `#if STAGE == 0_1` → `#define STAGE_0_1` + `#ifdef STAGE_0_1` (mỗi nhãn là 1 macro, kiểm tra bằng #ifdef/defined)"
+tags: [preprocessor, '#if', '#ifdef', defined, pp-number, integer-constant-expression, Pe014, Pe035, stage-macro, mode-select, iar]

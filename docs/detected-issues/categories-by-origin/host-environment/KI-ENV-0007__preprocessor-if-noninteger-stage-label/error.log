@@ -1,0 +1,40 @@
+# NGUYEN VAN - output cua iarbuild khi build config DMA_B12_S01_HAL voi ban macro SAI.
+# Tai hien lai co chu dich (2026-07-10) bang cach doi tam main_buoi12_dma.c ve dang
+#   #define STAGE 0_1  +  #if STAGE == 0_1 / #elif STAGE == 0_2 / #elif STAGE == 0_3
+# roi build, sau do `git checkout` tra lai ban da sua. Lenh:
+#   iarbuild.exe "...\test.ewp" -build DMA_B12_S01_HAL
+
+     IAR Command Line Build Utility V8.3.2.5988
+     Copyright 2002-2019 IAR Systems AB.
+
+Building configuration: test - DMA_B12_S01_HAL
+Updating build tree...
+
+3  file(s) deleted.
+Updating build tree...
+cortex_m3.c
+main_buoi12_dma.c
+D:\libraries\Manufacturer_Package\No.0_C&C++_Industrial_Draft\Embedded_C99\Microcontroller\1_Application\Buoi_12\main_buoi12_dma.c(22) : Error[Pe014]: extra text after expected end of preprocessing directive
+D:\libraries\Manufacturer_Package\No.0_C&C++_Industrial_Draft\Embedded_C99\Microcontroller\1_Application\Buoi_12\main_buoi12_dma.c(67) : Error[Pe014]: extra text after expected end of preprocessing directive
+D:\libraries\Manufacturer_Package\No.0_C&C++_Industrial_Draft\Embedded_C99\Microcontroller\1_Application\Buoi_12\main_buoi12_dma.c(72) : Error[Pe014]: extra text after expected end of preprocessing directive
+D:\libraries\Manufacturer_Package\No.0_C&C++_Industrial_Draft\Embedded_C99\Microcontroller\1_Application\Buoi_12\main_buoi12_dma.c(78) : Fatal Error[Pe035]: #error directive: "No STAGE selected - define STAGE_0_1 / STAGE_0_2 / STAGE_0_3"
+Error while running C/C++ Compiler
+startup_stm32f103cx.s
+stm32f1xx_hal_dma.c
+
+Total number of errors: 4
+Total number of warnings: 0
+
+
+ ERROR, Command failed: build
+
+# --------------------------------------------------------------------------
+# Dong 22 luc do:  #if   STAGE == 0_1        (sau khi bung macro => #if 0_1 == 0_1)
+# Dong 67, 72:     #elif STAGE == 0_2 / 0_3  (cung loi y het)
+# Dong 78:         #else  #error "No STAGE..."  -> vi ca 3 nhanh #if/#elif deu HONG,
+#                  bo tien xu ly coi nhu khong nhanh nao dung -> roi xuong #else.
+# Pe014 = "extra text after expected end of preprocessing directive": doc duoc so `0`
+# roi con `_1` thua ra -> `0_1` khong phai hang so nguyen hop le trong `#if`.
+#
+# Sau khi sua (#define STAGE_0_1 + #ifdef STAGE_0_1) build lai:
+#   Total number of errors: 0 / Total number of warnings: 0  (Linking OK)
