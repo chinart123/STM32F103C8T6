@@ -5458,6 +5458,24 @@
                 <configuration>DMA_B12_S02_03_BareMetal</configuration>
             </excluded>
         </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\..\..\Manufacturer_Package\No.0_C&amp;C++_Industrial_Draft\Embedded_C99\Microcontroller\stm32f10x\driver\stm32f1xx_hal_gpio.c</name>
+            <excluded>
+                <configuration>Debug</configuration>
+                <configuration>Release</configuration>
+                <configuration>Debug_Vendor</configuration>
+                <configuration>DMA_B12_S02_03_BareMetal</configuration>
+            </excluded>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\..\..\Manufacturer_Package\No.0_C&amp;C++_Industrial_Draft\Embedded_C99\Microcontroller\stm32f10x\driver\stm32f1xx_hal_tim.c</name>
+            <excluded>
+                <configuration>Debug</configuration>
+                <configuration>Release</configuration>
+                <configuration>Debug_Vendor</configuration>
+                <configuration>DMA_B12_S02_03_BareMetal</configuration>
+            </excluded>
+        </file>
     </group>
     <file>
         <name>$PROJ_DIR$\..\..\driver\include\base_timer.h</name>

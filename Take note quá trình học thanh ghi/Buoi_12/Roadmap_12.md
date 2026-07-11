@@ -1,8 +1,16 @@
 # Buổi 12 — Roadmap DMA (bản viết lại §N): thang API **HAL → CMSIS → raw**
 
-> Bản kế hoạch **trước giờ học**. Kết quả thật nằm ở `Note_12.txt` + snapshot
-> source + `runtime_buoi12.log`. Bản `.docx` cùng thư mục là bản trao tay, sinh
-> tự động từ chính file này.
+![Bản đồ Buổi 12 — hai đề bài × ba nấc API](assets/fig_12_overall_Roadmap.png)
+
+*Bản đồ Buổi 12: hai ĐỀ BÀI (A mem2mem · B LED PC13) × ba nấc THANG API (HAL/CMSIS/raw DSL). Ô xanh = đã PASS trên board (A·0_1 và B·0_1); các ô trắng là việc kế tiếp.*
+
+> Bản kế hoạch **trước giờ học**, có cập nhật tiến độ. Kết quả thật nằm trong
+> `Problem_A/` và `Problem_B/` (mỗi đề có `logs/` + `assets/` + `docs/` riêng);
+> báo cáo trao tay = `Problem_X/docs/report_Buoi_12_Problem_X_EN.docx`.
+>
+> **Tiến độ:** nấc **0_1 (HAL) đã PASS trên board cả hai đề** — Đề A (mem2mem,
+> §19) và Đề B (LED PC13 bằng TIM1_UP → DMA1_CH5 circular). Kế tiếp: 0_2 (CMSIS)
+> rồi 0_3 (raw DSL), nghiệm thu bằng diff vân tay thanh ghi (mục 5).
 >
 > **Vì sao viết lại?** Bản cũ (§14) dựng track hãng bằng **LL**. Sau smoke-test
 > §16 mới rõ: giữa HAL và thanh ghi raw còn nhiều tầng, và **LL tuy nhanh nhưng
@@ -35,29 +43,36 @@
 
 ## 2. Bản đồ STAGE — file code chia theo macro `STAGE`
 
-Mỗi giai đoạn học là một **nhãn** `STAGE` (chỉ là chuỗi nhận diện mode, không phải
-giá trị số); đổi nhãn là đổi bài:
+Mỗi giai đoạn học là một **nhãn macro** `STAGE_0_x`, mỗi đề bài là một nhãn
+`PROBLEM_A`/`PROBLEM_B`; đổi nhãn là đổi bài. (Lưu ý bug đã gặp: `#if` của
+preprocessor chỉ so sánh **số nguyên**, nên nhãn kiểu `0_1` phải chọn bằng
+`#ifdef`, **không** dùng `#if STAGE == 0_1` — chi tiết ở `bug_log`.)
 
 ```c
-/* ==== main.c : chọn bài đang học ==== */
-#define STAGE 0_1     /* nhãn chọn mode: 0_1 | 0_2 | 0_3 */
+/* ==== main_buoi12_dma.c : chọn bài đang học (cơ chế thật đang chạy) ==== */
+#define STAGE_0_1        /* 0_1 = HAL   (this build)   */
+/* #define STAGE_0_2 */  /* 0_2 = CMSIS (+ raw)        */
+/* #define STAGE_0_3 */  /* 0_3 = raw DSL only         */
 
-#if   STAGE == 0_1
-    /* ... HAL ...         */
-#elif STAGE == 0_2
-    /* ... CMSIS + raw ... */
-#elif STAGE == 0_3
-    /* ... raw DSL ...     */
+/* #define PROBLEM_A */  /* A = mem2mem RAM->RAM       (PASSED, §19) */
+#define PROBLEM_B        /* B = LED PC13 by TIM1_UP -> DMA1_CH5      */
+
+#ifdef STAGE_0_1
+  #ifdef PROBLEM_A
+    /* ... HAL mem2mem ... */
+  #elif defined(PROBLEM_B)
+    /* ... HAL TIM->DMA->ODR ... */
+  #endif
 #endif
 ```
 
-| STAGE | Tên | Nội dung | API | Config IAR |
-|---|---|---|---|---|
-| **0_1** | DMA thuần — HAL | mem2mem + TIM→DMA→`GPIOC_ODR` (LED PC13) | **HAL** | `Debug_HAL` |
-| **0_2** | DMA thuần — CMSIS(+raw) | cùng đề, ưu tiên CMSIS, hạ raw DSL khi buộc | **CMSIS + raw** | `Debug` |
-| **0_3** | DMA thuần — raw only | cùng đề, thuần DSL `RSTRUCT`/`BUNION` | **raw** | `Debug` |
-| 1 | DMA + poll `TCIF` | (buổi sau) | HAL → raw | — |
-| 2 | DMA + interrupt NVIC | (buổi sau) | HAL → raw | — |
+| STAGE | Tên | Nội dung | API | Config IAR | Trạng thái |
+|---|---|---|---|---|---|
+| **0_1** | DMA thuần — HAL | mem2mem + TIM→DMA→`GPIOC_ODR` (LED PC13) | **HAL** | `DMA_B12_S01_HAL` | ✅ **PASS cả A & B** |
+| **0_2** | DMA thuần — CMSIS(+raw) | cùng đề, ưu tiên CMSIS, hạ raw DSL khi buộc | **CMSIS + raw** | `DMA_B12_S02_03_BareMetal` | ⏳ kế tiếp |
+| **0_3** | DMA thuần — raw only | cùng đề, thuần DSL `RSTRUCT`/`BUNION` | **raw** | `DMA_B12_S02_03_BareMetal` | ⏳ |
+| 1 | DMA + poll `TCIF` | (buổi sau) | HAL → raw | — | — |
+| 2 | DMA + interrupt NVIC | (buổi sau) | HAL → raw | — | — |
 
 **Mục tiêu Buổi 12 = chốt xong 0_1, 0_2, 0_3.** Nút **PA0**, LED **PC13**.
 Giai đoạn 0 **được phép** chạm thanh ghi nhưng **cấm** polling & interrupt.
@@ -65,7 +80,13 @@ Giai đoạn 0 **được phép** chạm thanh ghi nhưng **cấm** polling & in
 ## 3. STAGE 0_1 — DMA thuần bằng **HAL** (kho `No.0_...Draft`)
 
 **Đề bài A (mem2mem):** DMA chép 8 word RAM→RAM, bật xong soi C-SPY (không poll).
-**Đề bài B (LED PC13):** `TIM_UP → DMA1_CH5 → GPIOC_ODR`, LED nháy khi CPU đứng im.
+✅ **PASS trên board (§19)** — bằng chứng: `Problem_A/logs/` + `Problem_A/assets/`;
+báo cáo: `Problem_A/docs/report_Buoi_12_Problem_A_EN.docx` (bản Việt cùng thư mục).
+
+**Đề bài B (LED PC13):** `TIM1_UP → DMA1_CH5 (circular) → GPIOC_ODR`, LED nháy khi
+CPU đứng im — kể cả khi **halt core tại breakpoint**. ✅ **PASS trên board** —
+bằng chứng: `Problem_B/assets/` (CNDTR đếm lùi 2→1 rồi tự reload, CIRC=1);
+báo cáo: `Problem_B/docs/report_Buoi_12_Problem_B_EN.docx`.
 
 ```c
 /* comments in English — see STANDARD.md */
@@ -94,11 +115,10 @@ void Stage01_MemToMem(uint32_t *src, uint32_t *dst)   /* 8 words, word-size */
 > `stm32f1xx_hal_dma.h`, `stm32f1xx_hal_dma_ex.h`, `stm32f1xx_hal_cortex.c/.h` →
 > Draft; `stm32f1xx_hal_conf_template.h` → Draft `0_common/include/` đổi tên
 > **`stm32f1xx_hal_conf.h`**.
-> ⏳ **Còn phải "tailor" `hal_conf.h`:** template bật cả ADC/CAN/SD… (chưa rút) →
-> phải **tắt** các module chưa rút, chỉ để `HAL_MODULE / DMA / GPIO / RCC / TIM /
-> CORTEX / FLASH / PWR` + set `HSE_VALUE` đúng board; nếu để nguyên sẽ `#include`
-> header không tồn tại và fail build. (Đây là lý do `hal_conf.h` **bắt buộc "của
-> mình"** — ST cố ý chỉ ship template.)
+> ✅ **Đã "tailor" `hal_conf.h` (§19):** tắt các module chưa rút, chỉ để
+> `HAL_MODULE / DMA / GPIO / RCC / TIM / CORTEX / FLASH / PWR` + set `HSE_VALUE`
+> đúng board. (Đây là lý do `hal_conf.h` **bắt buộc "của mình"** — ST cố ý chỉ
+> ship template.)
 
 ## 4. STAGE 0_2 & 0_3 — **CMSIS** rồi **raw** (đối chiếu vân tay thanh ghi với 0_1)
 
@@ -134,7 +154,10 @@ DMA1_Channel1->CCR  |= DMA_CCR_EN;         /* fires now — inspect in C-SPY    
 | 3 | **diff**: ba bản để lại **cùng** giá trị thanh ghi = hiểu đúng |
 | 4 | HAL set khác mình chỗ nào (default an toàn? chặn erratum?) → ghi report |
 
-*(Hình minh hoạ: xem mục "Figures" cuối file — bản cũ đã lỗi thời, đang vẽ lại.)*
+*(Hình minh hoạ: xem mục "Figures" cuối file.)* Vân tay HAL của cả hai đề đã chốt
+ở nấc 0_1: Đề A = `CCR1=0x00004AC1, CNDTR=0, TCIF1=1` (Bảng 1–2 report A); Đề B =
+`CCR5=0x00000AB1, CNDTR 2↔1, DIER=0x100, PSC=7999, ARR=399` (Bảng 1–2 report B).
+Đây là mốc để 0_2/0_3 diff.
 
 ## 6. Lớp ứng dụng — `dma_fsm_button` / `dma_fsm_led` / `dma_fsm_time`
 
@@ -241,15 +264,20 @@ void dma_Led_Process(dma_Led_Context* l, unsigned int now);            /* dùng 
 `hal_cortex(.c/.h)` → Draft `driver`; `hal_conf_template.h` → `0_common/include`
 đổi tên `stm32f1xx_hal_conf.h`.
 
-**(7b) Tailor `stm32f1xx_hal_conf.h` — ⏳ còn phải làm** (mục 3): tắt module chưa rút,
+**(7b) Tailor `stm32f1xx_hal_conf.h` — ✅ đã xong (§19)** (mục 3): tắt module chưa rút,
 để lại DMA/GPIO/RCC/TIM/CORTEX/FLASH/PWR, set `HSE_VALUE`.
 
-**(7c) Config IAR:**
+**(7c) Config IAR — ✅ đã wire (tên config thật):**
 
-| Track | Config | Symbols | Include thêm | Add source |
-|---|---|---|---|---|
-| bare-metal (0_2, 0_3) | **`Debug`** | `STM32F103xB` | `C&C++\...` (+ CMSIS device header cho 0_2) | *(raw: không)* |
-| HAL (0_1) | **`Debug_HAL`** (base=Debug) | `STM32F103xB`, **`USE_HAL_DRIVER`** | Draft `driver\include` + `0_common\include` + CubeF1 `CMSIS\...\Include` + `CMSIS\Device\...\Include` | `hal.c`,`hal_rcc.c`,`hal_gpio.c`,**`hal_dma.c`**,`hal_cortex.c`,`hal_tim.c` |
+| Track | Config | Symbols | Add source (thực tế đã dùng) |
+|---|---|---|---|
+| bare-metal (0_2, 0_3) | **`DMA_B12_S02_03_BareMetal`** | `STM32F103xB` | *(raw: không; CMSIS chỉ cần device header)* |
+| HAL (0_1) | **`DMA_B12_S01_HAL`** (base=Debug) | `STM32F103xB`, **`USE_HAL_DRIVER`** | `main_buoi12_dma.c`, **`hal_dma.c`** (Đề A) + `hal_gpio.c`, `hal_tim.c` (Đề B) — **không cần** `hal.c`/`hal_rcc.c`/`hal_cortex.c`/`system_stm32f1xx.c` (startup không gọi `SystemInit`, linker tự loại) |
+
+Chia source theo config bằng cờ `<excluded>` trên **một** source list dùng chung;
+config LL `Debug` cũ không hề đụng. Thêm/xóa **cờ (define)** cho từng config: GUI
+*Project → Options… → C/C++ Compiler → Preprocessor → Defined symbols* (mỗi dòng
+một symbol, chọn config ở drop-down trước) — lưu trong `.ewp` dưới `<CCDefines>`.
 
 Gốc chung `$REPO$ = $PROJ_DIR$\..\..\..\..\..\..` (= `D:\libraries`). Thêm path bằng
 **GUI**; nếu sửa `.ewp` tay thì `&` trong `C&C++` phải ghi `&amp;` (file .ewp là XML).
@@ -311,11 +339,26 @@ kiểm B2-pair trước push.
 
 ## Figures
 
-Hình cũ (`fig_12_datapath.png`, `fig_12_two_track.png`) **đã lỗi thời** (còn nói tới
-track LL) → **sẽ xoá và vẽ lại**:
+**Dùng chung (`assets/`):**
 
-- `fig_12_dma_datapath.png` — LED PC13 nháy bằng DMA thuần: TIM_UP (UDE) → DMA1_CH5 → `GPIOC_ODR`, CPU đứng ngoài.
-- `fig_12_api_ladder.png` — cùng đề đi qua 0_1 (HAL) ↔ 0_2 (CMSIS) ↔ 0_3 (raw), ba vân tay thanh ghi gặp nhau ở C-SPY dumpRegs.
+- `fig_12_overall_Roadmap.png` — bản đồ 2 đề × 3 nấc; ô xanh = PASS on board.
+- `fig_12_api_ladder.png` — cùng đề đi qua 0_1 (HAL) ↔ 0_2 (CMSIS) ↔ 0_3 (raw), ba vân tay thanh ghi gặp nhau ở C-SPY dumpRegs; kèm dãy thanh ghi DMA tô màu + dải 6 tầng API STM32F1.
+- `fig_12_IAR_config_debug_profile_Setup.png` — 1 project `test.ewp` × 5 build profile; ô gạch chéo = `Debug_Vendor` không dùng nữa; legend giải nghĩa từng cờ; vòng PASS/FAIL build↔board.
+
+**Đề A (`Problem_A/assets/`, họ `fig_12_A_S01_*`):** MEM2MEM (datapath),
+DMA1_full_reg / staged / latter(bin) / latter(hex) (bằng chứng C-SPY, khung đỏ =
+giá trị sống, khung xanh = giá trị cấu hình), api_usage (donut 1/30 module ·
+2/12 hàm), static_address_at_runTime.
+
+**Đề B (`Problem_B/assets/`, họ `fig_12_B_S01_*`):** `fig_12_S01_DMA_datapath.png`
+(TIM_UP (UDE) → DMA1_CH5 → `GPIOC_ODR`, CPU đứng ngoài),
+CNDTR_countdown / CNDTR_reload (bằng chứng C-SPY: đếm lùi rồi tự nạp lại),
+halted_cpu_blink (timing: core halt mà LED vẫn nháy), api_usage (donut 3/30
+module · 5/94 hàm).
+
+*(Hình cũ `fig_12_datapath.png`, `fig_12_two_track.png`, `old_roadmap_1/2.png`,
+`fig_roadmap_compare.png` và report `report_roadmap_old_vs_new.md` đã xoá — nội
+dung còn lại trong git history.)*
 
 ---
 
@@ -323,7 +366,7 @@ track LL) → **sẽ xoá và vẽ lại**:
 
 | # | Conflict | Xử lý |
 |---|---|---|
-| C1 | Draft thiếu HAL DMA + `hal_conf.h` (+`hal_cortex`) | ✅ đã `git mv`; ⏳ tailor conf (mục 3, 7) |
+| C1 | Draft thiếu HAL DMA + `hal_conf.h` (+`hal_cortex`) | ✅ đã `git mv` + ✅ đã tailor conf (mục 3, 7) |
 | C2 | `fsm_time` dùng SysTick | `dma_fsm_time` đọc `TIM2->CNT` (mục 6) |
 | C3 | `fsm_button` 1 ngưỡng hold + init dài dòng | `dma_fsm_button` 3 ngưỡng, init bằng struct (mục 6) |
 | C4 | PC13 không có PWM phần cứng | soft-PWM + TIM→DMA→ODR (mục 4, 6) |
