@@ -1126,7 +1126,7 @@
                 </option>
                 <option>
                     <name>OGLastSavedByProductVersion</name>
-                    <state></state>
+                    <state>8.40.1.21529</state>
                 </option>
                 <option>
                     <name>GeneralEnableMisra</name>
@@ -1138,7 +1138,7 @@
                 </option>
                 <option>
                     <name>OGChipSelectEditMenu</name>
-                    <state></state>
+                    <state>Default	None</state>
                 </option>
                 <option>
                     <name>GenLowLevelInterface</name>
@@ -1172,7 +1172,7 @@
                 </option>
                 <option>
                     <name>RTConfigPath2</name>
-                    <state></state>
+                    <state>$TOOLKIT_DIR$\inc\c\DLib_Config_Normal.h</state>
                 </option>
                 <option>
                     <name>GBECoreSlave</name>
@@ -1198,7 +1198,7 @@
                 </option>
                 <option>
                     <name>GFPUDeviceSlave</name>
-                    <state>-</state>
+                    <state>Default	None</state>
                 </option>
                 <option>
                     <name>FPU2</name>
@@ -1389,7 +1389,7 @@
                 </option>
                 <option>
                     <name>OutputFile</name>
-                    <state></state>
+                    <state>$FILE_BNAME$.o</state>
                 </option>
                 <option>
                     <name>CCLibConfigHeader</name>
@@ -1430,7 +1430,7 @@
                 </option>
                 <option>
                     <name>CCOptLevelSlave</name>
-                    <state>1</state>
+                    <state>3</state>
                 </option>
                 <option>
                     <name>CompilerMisraRules98</name>
@@ -1659,7 +1659,7 @@
                 </option>
                 <option>
                     <name>AOutputFile</name>
-                    <state></state>
+                    <state>$FILE_BNAME$.o</state>
                 </option>
                 <option>
                     <name>ALimitErrorsCheck</name>
@@ -1764,7 +1764,7 @@
                 </option>
                 <option>
                     <name>IlinkOutputFile</name>
-                    <state>###Unitialized###</state>
+                    <state>test.out</state>
                 </option>
                 <option>
                     <name>IlinkDebugInfoEnable</name>
@@ -3393,6 +3393,7 @@
                     <name>CCDefines</name>
                     <state>STM32F103xB</state>
                     <state>USE_HAL_DRIVER</state>
+                    <state>USE_FULL_LL_DRIVER</state>
                 </option>
                 <option>
                     <name>CCPreprocFile</name>
@@ -4452,6 +4453,7 @@
                 <option>
                     <name>CCDefines</name>
                     <state>STM32F103xB</state>
+                    <state>USE_FULL_LL_DRIVER</state>
                 </option>
                 <option>
                     <name>CCPreprocFile</name>
@@ -5306,18 +5308,21 @@
             <name>$PROJ_DIR$\..\..\..\1_Application\button\button.c</name>
             <excluded>
                 <configuration>DMA_B12_S01_HAL</configuration>
+                <configuration>DMA_B12_S02_03_BareMetal</configuration>
             </excluded>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\..\1_Application\button\fsm_button.c</name>
             <excluded>
                 <configuration>DMA_B12_S01_HAL</configuration>
+                <configuration>DMA_B12_S02_03_BareMetal</configuration>
             </excluded>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\..\1_Application\led\fsm_led.c</name>
             <excluded>
                 <configuration>DMA_B12_S01_HAL</configuration>
+                <configuration>DMA_B12_S02_03_BareMetal</configuration>
             </excluded>
         </file>
         <file>
@@ -5327,26 +5332,98 @@
             <name>$PROJ_DIR$\..\..\driver\gpio.c</name>
             <excluded>
                 <configuration>DMA_B12_S01_HAL</configuration>
+                <configuration>DMA_B12_S02_03_BareMetal</configuration>
             </excluded>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\..\1_Application\led\led.c</name>
             <excluded>
                 <configuration>DMA_B12_S01_HAL</configuration>
+                <configuration>DMA_B12_S02_03_BareMetal</configuration>
+            </excluded>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\source\main.c</name>
+            <excluded>
+                <configuration>Debug</configuration>
+                <configuration>Release</configuration>
+                <configuration>Debug_Vendor</configuration>
+                <configuration>DMA_B12_S01_HAL</configuration>
+                <configuration>DMA_B12_S02_03_BareMetal</configuration>
+            </excluded>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\source\main_b12_A_S01.c</name>
+            <excluded>
+                <configuration>Release</configuration>
+                <configuration>DMA_B12_S02_03_BareMetal</configuration>
+            </excluded>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\source\main_b12_A_S02.c</name>
+            <excluded>
+                <configuration>Debug</configuration>
+                <configuration>Release</configuration>
+                <configuration>Debug_Vendor</configuration>
+                <configuration>DMA_B12_S01_HAL</configuration>
+                <configuration>DMA_B12_S02_03_BareMetal</configuration>
+            </excluded>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\source\main_b12_A_S03.c</name>
+            <excluded>
+                <configuration>Debug</configuration>
+                <configuration>Release</configuration>
+                <configuration>Debug_Vendor</configuration>
+                <configuration>DMA_B12_S01_HAL</configuration>
+                <configuration>DMA_B12_S02_03_BareMetal</configuration>
+            </excluded>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\source\main_b12_B_S01.c</name>
+            <excluded>
+                <configuration>Debug</configuration>
+                <configuration>Release</configuration>
+                <configuration>Debug_Vendor</configuration>
+                <configuration>DMA_B12_S01_HAL</configuration>
+                <configuration>DMA_B12_S02_03_BareMetal</configuration>
+            </excluded>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\source\main_b12_B_S02.c</name>
+            <excluded>
+                <configuration>Debug</configuration>
+                <configuration>Release</configuration>
+                <configuration>Debug_Vendor</configuration>
+                <configuration>DMA_B12_S01_HAL</configuration>
+                <configuration>DMA_B12_S02_03_BareMetal</configuration>
+            </excluded>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\source\main_b12_B_S03.c</name>
+            <excluded>
+                <configuration>Debug</configuration>
+                <configuration>Release</configuration>
+                <configuration>Debug_Vendor</configuration>
+                <configuration>DMA_B12_S01_HAL</configuration>
+            </excluded>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\source\main_buoi11_tim1.c</name>
+            <excluded>
+                <configuration>Debug</configuration>
+                <configuration>Release</configuration>
+                <configuration>Debug_Vendor</configuration>
+                <configuration>DMA_B12_S01_HAL</configuration>
+                <configuration>DMA_B12_S02_03_BareMetal</configuration>
             </excluded>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\..\..\..\..\Manufacturer_Package\No.0_C&amp;C++_Industrial_Draft\Embedded_C99\Microcontroller\1_Application\main_buoi12_0_test.c</name>
             <excluded>
-                <configuration>DMA_B12_S01_HAL</configuration>
-            </excluded>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\..\..\..\..\..\Manufacturer_Package\No.0_C&amp;C++_Industrial_Draft\Embedded_C99\Microcontroller\1_Application\Buoi_12\main_buoi12_dma.c</name>
-            <excluded>
                 <configuration>Debug</configuration>
-                <configuration>Release</configuration>
                 <configuration>Debug_Vendor</configuration>
+                <configuration>DMA_B12_S01_HAL</configuration>
                 <configuration>DMA_B12_S02_03_BareMetal</configuration>
             </excluded>
         </file>
@@ -5378,6 +5455,7 @@
             <name>$PROJ_DIR$\..\..\driver\include\flash.c</name>
             <excluded>
                 <configuration>DMA_B12_S01_HAL</configuration>
+                <configuration>DMA_B12_S02_03_BareMetal</configuration>
             </excluded>
         </file>
         <file>
@@ -5393,6 +5471,7 @@
             <name>$PROJ_DIR$\..\..\driver\fsm_time.c</name>
             <excluded>
                 <configuration>DMA_B12_S01_HAL</configuration>
+                <configuration>DMA_B12_S02_03_BareMetal</configuration>
             </excluded>
         </file>
         <file>
@@ -5427,27 +5506,6 @@
         </file>
     </group>
     <group>
-        <name>Vendor_LL</name>
-        <file>
-            <name>$PROJ_DIR$\..\..\..\..\..\..\Manufacturer_Package\No.0_C&amp;C++_Industrial_Draft\Embedded_C99\Microcontroller\stm32f10x\driver\stm32f1xx_ll_exti.c</name>
-            <excluded>
-                <configuration>DMA_B12_S01_HAL</configuration>
-            </excluded>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\..\..\..\..\..\Manufacturer_Package\No.0_C&amp;C++_Industrial_Draft\Embedded_C99\Microcontroller\stm32f10x\driver\stm32f1xx_ll_gpio.c</name>
-            <excluded>
-                <configuration>DMA_B12_S01_HAL</configuration>
-            </excluded>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\..\..\..\..\..\Manufacturer_Package\No.0_C&amp;C++_Industrial_Draft\Embedded_C99\Microcontroller\stm32f10x\driver\stm32f1xx_ll_tim.c</name>
-            <excluded>
-                <configuration>DMA_B12_S01_HAL</configuration>
-            </excluded>
-        </file>
-    </group>
-    <group>
         <name>Vendor_HAL</name>
         <file>
             <name>$PROJ_DIR$\..\..\..\..\..\..\Manufacturer_Package\No.0_C&amp;C++_Industrial_Draft\Embedded_C99\Microcontroller\stm32f10x\driver\stm32f1xx_hal_dma.c</name>
@@ -5473,6 +5531,30 @@
                 <configuration>Debug</configuration>
                 <configuration>Release</configuration>
                 <configuration>Debug_Vendor</configuration>
+                <configuration>DMA_B12_S02_03_BareMetal</configuration>
+            </excluded>
+        </file>
+    </group>
+    <group>
+        <name>Vendor_LL</name>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\..\..\Manufacturer_Package\No.0_C&amp;C++_Industrial_Draft\Embedded_C99\Microcontroller\stm32f10x\driver\stm32f1xx_ll_exti.c</name>
+            <excluded>
+                <configuration>DMA_B12_S01_HAL</configuration>
+                <configuration>DMA_B12_S02_03_BareMetal</configuration>
+            </excluded>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\..\..\Manufacturer_Package\No.0_C&amp;C++_Industrial_Draft\Embedded_C99\Microcontroller\stm32f10x\driver\stm32f1xx_ll_gpio.c</name>
+            <excluded>
+                <configuration>DMA_B12_S01_HAL</configuration>
+                <configuration>DMA_B12_S02_03_BareMetal</configuration>
+            </excluded>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\..\..\Manufacturer_Package\No.0_C&amp;C++_Industrial_Draft\Embedded_C99\Microcontroller\stm32f10x\driver\stm32f1xx_ll_tim.c</name>
+            <excluded>
+                <configuration>DMA_B12_S01_HAL</configuration>
                 <configuration>DMA_B12_S02_03_BareMetal</configuration>
             </excluded>
         </file>
