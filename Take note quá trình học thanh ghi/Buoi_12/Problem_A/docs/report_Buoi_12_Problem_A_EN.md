@@ -51,13 +51,18 @@ with the CPU parked in an empty `while(1)` — no polling, no interrupts (the "S
 rule). Small enough to verify exhaustively, complete enough to exercise the whole DMA
 programming model (CCR/CNDTR/CPAR/CMAR/ISR).
 
-**Problem A spans three stages** — the same problem re-implemented at three API layers:
+**Problem A spans three stages** — the same problem re-implemented at three API layers,
+all covered by this report:
 
 | Stage | API layer | Status |
 |---|---|---|
-| 0_1 | HAL (vendor library) | **PASS on board — this report** |
-| 0_2 | CMSIS (register names) | next |
-| 0_3 | raw registers (project DSL per `STANDARD.md`) | planned |
+| 0_1 | HAL (vendor functions + vendor names) | **PASS on board** |
+| 0_2 | CMSIS (vendor names only, zero vendor code) | **PASS on board** |
+| 0_3 | raw registers (project DSL per `STANDARD.md` — nothing vendor) | **PASS on board** |
+
+Stages 0_2 and 0_3 are **support stages** of 0_1: their purpose is to expose which
+components of the vendor API stage 0_1 actually used, and to demonstrate the extraction
+technique — read the vendor source, keep only the register writes, re-verify on board.
 
 Problem B — the timer-paced sibling problem of Session 12 — has its own report; the two
 share only the session map (section 4.1) and the acceptance method.
@@ -102,10 +107,10 @@ Problem A architecture (shared by stages 0_1 / 0_2 / 0_3)
    CPU: while(1) { }   -- no polling, no interrupts (Stage-0 rule)
 ```
 
-This report covers the **(Problem A · rung 0_1 HAL)** cell of the session map below;
-green cells are already verified on the board.
+This report covers the whole **Problem A row** of the session map below. The matrix is
+now complete — all six cells PASS on board; only the application layer remains.
 
-![The Session 12 map: two problems × three API rungs; green cells = PASS on board; this report covers the (Problem A · HAL) cell](D:/libraries/Take note quá trình học thanh ghi/Buoi_12/assets/fig_12_overall_Roadmap.png)
+![The Session 12 map, final state: two problems × three API rungs, 6/6 cells PASS on board with the same register fingerprint per problem; the dashed application layer is the only piece left](D:/libraries/Take note quá trình học thanh ghi/Buoi_12/assets/fig_12_overall_Roadmap.png)
 
 ### 4.2 Toolchain and build profiles
 
@@ -113,7 +118,7 @@ Hardware: STM32F103C8T6 (Blue Pill), flashed and debugged over **ST-Link V2, pur
 inspected with **C-SPY** (IAR EWARM 8.3). The project keeps **one source list** and
 splits it per build profile with `<excluded>` flags; each profile enables only its own
 defines. Rung 0_1 gets a dedicated profile **`DMA_B12_S01_HAL`** (`STM32F103xB` +
-`USE_HAL_DRIVER`): the compile list is just `main_buoi12_dma.c` + `stm32f1xx_hal_dma.c`
+`USE_HAL_DRIVER`): the compile list is just the stage's main file + `stm32f1xx_hal_dma.c`
 + `startup` + `cortex_m3.c`, every legacy LL / smoke-test file excluded — so the old LL
 `Debug` build stays untouched. Notably, `hal.c` / `system_stm32f1xx.c` are **not
 needed** (startup does not call `SystemInit`; the linker discards unused HAL code).
@@ -131,11 +136,18 @@ profile's flag changes show up as reviewable diffs in git.
 
 ![IAR configuration — debug profile setup: one project fans out to five build profiles (only the enabled flags differ; the legend decodes each flag); the hatched profile (Debug_Vendor) is kept in the project but no longer used; all profiles feed iarbuild — PASS flashes to the board, FAIL loops back to fix-and-rebuild](D:/libraries/Take note quá trình học thanh ghi/Buoi_12/assets/fig_12_IAR_config_debug_profile_Setup.png)
 
-### 4.3 Implementation (evidence in code)
+### 4.3 Stage 0_1 — HAL implementation (evidence in code)
 
-A single `main.c` serves all stages; the rung is selected with `#ifdef STAGE_0_x` labels
-(the label is a *macro name*, not a number — it must be tested with `#ifdef`, never
-`#if ==`). The complete Stage 0_1 core:
+Each (problem × stage) cell is one self-contained file living beside the hand library's
+own `source/main.c` — `main_b12_A_S01.c` / `_S02.c` / `_S03.c` (and the `main_b12_B_*`
+trio for Problem B). The mains are *our* application code; vendor material never enters
+the hand tree — stages that need HAL/CMSIS *call into* the warehouse
+(`Manufacturer_Package/`) through the project's include paths. The cell to run is
+selected by keeping exactly **one** `main_b12_*.c` included in the build (IAR:
+include/exclude from build).
+*Historical note:* the cells first shared one `#ifdef`-switched file — the "labels are
+macro names, test with `#ifdef`, never `#if ==`" lesson in 4.7 dates from that layout.
+The complete Stage 0_1 core:
 
 ```c
 static void Stage01_MemToMem(uint32_t *src, uint32_t *dst)
@@ -155,29 +167,106 @@ static void Stage01_MemToMem(uint32_t *src, uint32_t *dst)
 }
 ```
 
-Two HAL calls and one clock macro — that is the entire vendor surface of rung 0_1.
+Two HAL calls and one clock macro — that is the entire vendor surface of stage 0_1.
 Everything after `HAL_DMA_Start()` happens in silicon.
 
-### 4.4 Verification method
+### 4.4 Stage 0_2 — CMSIS: extracting the API
 
-1. Flash via ST-Link, run through `Stage01_MemToMem()`, halt.
+The extraction technique: **read the vendor source, keep only what it writes.** Tracing
+`stm32f1xx_hal_dma.c` line by line shows the two HAL calls of 4.3 collapse to ~7 register
+writes hiding under ~600 lines of vendor code. Stage 0_2 performs those writes directly;
+the only vendor material left is *names* — `stm32f103xb.h` is pure vocabulary
+(`#define`s, structs, bit masks), zero behavior. Every line is annotated with the HAL
+call it replaces:
+
+```c
+#include "stm32f103xb.h"     /* CMSIS device header: names only, no code */
+
+static void Stage02_MemToMem(uint32_t *src, uint32_t *dst)
+{
+    RCC->AHBENR |= RCC_AHBENR_DMA1EN;         /* was __HAL_RCC_DMA1_CLK_ENABLE */
+
+    DMA1_Channel1->CCR &= ~DMA_CCR_EN;        /* HAL_DMA_Init precondition:    */
+                                              /* configure only while disabled */
+    DMA1_Channel1->CCR = DMA_CCR_MEM2MEM      /* was Init.Direction = MEM2MEM  */
+                       | DMA_CCR_MSIZE_1      /* was Init.MemDataAlignment=WORD*/
+                       | DMA_CCR_PSIZE_1      /* was Init.PeriphDataAlignment  */
+                       | DMA_CCR_MINC         /* was Init.MemInc = ENABLE      */
+                       | DMA_CCR_PINC;        /* was Init.PeriphInc = ENABLE   */
+    DMA1_Channel1->CNDTR = 8u;                /* was HAL_DMA_Start count arg   */
+    DMA1_Channel1->CPAR  = (uint32_t)src;     /* source      (DIR=0: CPAR=src) */
+    DMA1_Channel1->CMAR  = (uint32_t)dst;     /* destination                   */
+    DMA1_Channel1->CCR  |= DMA_CCR_EN;        /* fires now -> CCR = 0x00004AC1 */
+}
+```
+
+A useful discovery fell out of the build system here: because the stage label lives in
+the *source*, building the old `DMA_B12_S01_HAL` profile compiles this same 0_2 code —
+the HAL modules are still compiled but nothing calls them, so the linker strips them and
+**both profiles produce the same binary**. The library's presence or absence changes
+nothing once the behavior is hand-written.
+
+### 4.5 Stage 0_3 — raw DSL: owning the names
+
+The final stage removes the vendor's *vocabulary* too. The register map is hand-written
+from RM0008 chapter 13 into `dma.h` — the project's first DMA map — using the
+`BUNION`/`RSTRUCT` DSL of `STANDARD.md`: seven identical channels become one 20-byte
+`DMA_CHANNEL_TypeDef` stacked in an array (`CH[0]` = the manual's channel 1), read-only
+flags are `const`, and a bit-band twin (`DMA_BITBAND_TypeDef`) mirrors every bit. The
+placed instance `DMA1 @ 0x40020000` joins `stm32f103c8t6.h`. The map's layout was
+verified with host-side `_Static_assert`s (channel stride = 20 bytes, `CH[4].CCR` at
+offset 0x58) before touching the board:
+
+```c
+#include <stm32f103c8t6.h>   /* hand-written map: RM0008 only, zero vendor */
+
+static void Stage03_MemToMem(uint32_t *src, uint32_t *dst)
+{
+    RCC.AHB_ENR.BITS.DMA1 = 1;          /* clock first, always               */
+
+    DMA1.CH[0].CCR.REG = 0;             /* known state; config only while EN=0 */
+    DMA1.CH[0].CCR.BITS.MEM2MEM = 1;    /* RAM->RAM: no peripheral request   */
+    DMA1.CH[0].CCR.BITS.MSIZE   = 2;    /* 2 = 32-bit memory cells           */
+    DMA1.CH[0].CCR.BITS.PSIZE   = 2;    /* 2 = 32-bit "peripheral" cells     */
+    DMA1.CH[0].CCR.BITS.MINC    = 1;    /* walk the dest array               */
+    DMA1.CH[0].CCR.BITS.PINC    = 1;    /* walk the source array             */
+    DMA1.CH[0].CNDTR.BITS.NDT   = 8u;   /* 8 beats                           */
+    DMA1.CH[0].CPAR = (uint32_t)src;    /* source (DIR=0: CPAR is "from")    */
+    DMA1.CH[0].CMAR = (uint32_t)dst;    /* destination                       */
+    DMA1.CH[0].CCR.BITS.EN = 1;         /* fires now -> CCR = 0x00004AC1     */
+}
+```
+
+Same ~7 writes as 0_2, but every name is now readable *and owned*: `CCR.BITS.MEM2MEM`
+instead of a mask, field-per-line writes that document themselves. Stages 0_2/0_3 build
+on a dedicated vendor-free profile, **`DMA_B12_S02_03_BareMetal`** (define `STM32F103xB`
+only; compile list: the stage's `main_b12_*.c` + startup + `cortex_m3.c`).
+
+### 4.6 Verification method
+
+1. Flash via ST-Link, run through the stage's `StageXX_MemToMem()`, halt.
 2. **Register fingerprint:** read DMA1 Channel 1 in the C-SPY Registers window with every
    bit-field expanded; dump to `Problem_A/logs/DMA1.log`.
 3. **Memory check:** compare `g_src[]` / `g_dst[]` in Live Watch (decimal and hex);
    logs `LiveWatch-binary.log` / `LiveWatch-hexa.log`.
-4. Keep the fingerprint as the acceptance reference for stages 0_2 / 0_3.
+4. Repeat per stage and **diff the fingerprints**: 0_1 recorded the reference; 0_2 and
+   0_3 must reproduce it bit-for-bit (they did — `CCR1 = 0x00004AC1`, `CNDTR = 0`,
+   `TCIF1 = 1`, `g_dst == g_src` at all three stages).
 
-### 4.5 Progress
+### 4.7 Progress
 
 | Step | Outcome |
 |---|---|
-| Write `main_buoi12_dma.c` (STAGE_0_1) | done |
+| Write the Stage 0_1 main (now `main_b12_A_S01.c`) | done |
 | Wire `test.ewp` profile `DMA_B12_S01_HAL` | done — old configs untouched |
 | Build #1 | FAIL — 3× `Pe014` from `#if STAGE == 0_1` (integer-only `#if`) |
 | Fix: `#ifdef STAGE_0_1` labels | done — recorded in `bug_log` |
 | Build #2 | 0 errors, 0 warnings |
-| On-board run + capture | **PASS** — evidence in `Problem_A/logs/` and `assets/` |
-| Stage 0_2 (CMSIS), 0_3 (raw DSL) | not started — next sessions |
+| On-board run + capture (0_1) | **PASS** — evidence in `Problem_A/logs/` and `assets/` |
+| Stage 0_2: trace HAL → CMSIS writes; wire `DMA_B12_S02_03_BareMetal` | done — build 0 err / 0 warn |
+| On-board run (0_2) | **PASS** — same fingerprint as 0_1 |
+| Stage 0_3: write `dma.h` map (BUNION/RSTRUCT) + host-side layout asserts | done — build 0 err / 0 warn |
+| On-board run (0_3) | **PASS** — same fingerprint; Problem A row complete |
 
 ## 5. Result and Evaluation
 
@@ -241,14 +330,29 @@ set up as coded).
 | Evidence captured to logs/assets | **met** (`Problem_A/logs/`, `Problem_A/assets/`) |
 | Fingerprint recorded for 0_2 / 0_3 | **met** (Tables 1–2 are the reference) |
 
-### 5.4 Vendor-API footprint
+### 5.4 Vendor-API footprint — stage by stage
 
-Problem A deliberately uses HAL at a **minimum** — an *ignition switch* to get on the
-air quickly, before rungs 0_2/0_3 verify everything down to the registers. At module
-level, 1 of ≈30 HAL driver files is compiled (~3%); at function level, 2 of the 12
-public `HAL_DMA_*` functions are called (~17%).
+The vendor supplies two separable things: **functions** (behavior — code that runs) and
+**names** (vocabulary — `#define`s and structs). Each stage strips one of them.
 
-![Vendor API usage in Problem A, with the two counting units defined by example: 1 module = 1 vendor driver file (only stm32f1xx_hal_dma.c of 30 is compiled, ~3%); 1 function = 1 public API inside that file (only HAL_DMA_Init + HAL_DMA_Start of 12 are called, ~17%); green = used, gray = stripped by the linker](D:/libraries/Take note quá trình học thanh ghi/Buoi_12/Problem_A/assets/fig_12_A_S01_api_usage.png)
+**Stage 0_1 — HAL: functions + names.** HAL is used at a deliberate *minimum* — an
+ignition switch to get on the air quickly. At module level, 1 of ≈30 HAL driver files is
+compiled (~3%); at function level, 2 of the 12 public `HAL_DMA_*` functions are called
+(~17%). Still, ~600 vendor lines run for what is really ~7 register writes.
+
+![Vendor API usage in Problem A at stage 0_1, with the two counting units defined by example: 1 module = 1 vendor driver file (only stm32f1xx_hal_dma.c of 30 is compiled, ~3%); 1 function = 1 public API inside that file (only HAL_DMA_Init + HAL_DMA_Start of 12 are called, ~17%); green = used, gray = stripped by the linker](D:/libraries/Take note quá trình học thanh ghi/Buoi_12/Problem_A/assets/fig_12_A_S01_api_usage.png)
+
+**Stage 0_2 — CMSIS: names only.** Vendor functions drop to **zero** — the ~7 writes are
+hand-written. Ten vendor names remain, all from the device header `stm32f103xb.h`
+(`DMA1_Channel1`, `RCC_AHBENR_DMA1EN`, the six `DMA_CCR_*` masks, `DMA_Channel_TypeDef`,
+`RCC`) — vocabulary with zero behavior behind it.
+
+**Stage 0_3 — raw DSL: nothing vendor.** The names come from the hand-written `dma.h`
+(RM0008 chapter 13), the behavior from the same 7 writes. Vendor footprint: **0 modules,
+0 functions, 0 names** — while the board fingerprint stays bit-identical
+(`CCR1 = 0x00004AC1` at all three stages).
+
+![Vendor-API footprint of Problem A across the three stages: the vendor's FUNCTIONS row is stripped at 0_2 (traced into 7 hand-written writes) and its NAMES row at 0_3 (own dma.h map); orange = vendor material still in the build, green check = replaced by a hand-written equivalent — the fingerprint stays 0x4AC1 throughout](D:/libraries/Take note quá trình học thanh ghi/Buoi_12/Problem_A/assets/fig_12_A_S123_api_footprint.png)
 
 ### 5.5 Lessons learned
 
@@ -264,6 +368,13 @@ public `HAL_DMA_*` functions are called (~17%).
 - **An IAR "configuration" lives in both `.ewp` and `.ewd`;** creating a config is GUI
   work (it touches device/linker settings); the shared source list is split per config
   with `<excluded>` flags.
+- **The build profile does not choose the stage — the source labels do.** With
+  `STAGE_0_2` active, even the HAL profile builds the CMSIS code (its HAL modules
+  compile but are dead-stripped: nothing calls them). Both profiles then produce the
+  same binary — an accidental but perfect control experiment.
+- **Compile-time checks beat board time.** The `dma.h` layout (20-byte channel stride,
+  `CH[4].CCR` at 0x58) was proven with host-side `_Static_assert`s before flashing —
+  a wrong map would have *built* fine and failed only on hardware.
 
 ## 6. References
 

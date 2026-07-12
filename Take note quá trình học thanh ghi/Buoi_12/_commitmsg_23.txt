@@ -1,0 +1,23 @@
+§23 docs(report): Buổi 12 EN report pair v2 — three-stage methodology + per-stage vendor-API footprint figures + roadmap 6/6 green; drop old VN Problem A pair
+
+- Problem A & B EN reports (md + docx, docx-js engine) restructured for the
+  full matrix: methodology split into per-stage sections 4.3 (0_1 HAL) /
+  4.4 (0_2 CMSIS, extraction technique with `was`-trace snippets) /
+  4.5 (0_3 raw DSL); 4.6 verification with cross-stage fingerprint diff;
+  progress and lesson sections extended (profile != stage, host-side
+  static-assert layout checks, __root pointers only needed at vendor stages)
+- Problem B 4.5 documents the Live-Watch-by-name procedure: the two __root
+  debug pointers (g_dbg_dma5 / g_dbg_tim1) are deleted at stage 0_3 — the
+  hand map places real symbols, so the user types DMA1 / TIM1 / GPIOC
+  directly into Live Watch and reads fields by name
+- NEW figures fig_12_A_S123_api_footprint.png / fig_12_B_S123_api_footprint.png:
+  vendor FUNCTIONS vs NAMES across the three stages (orange = vendor material
+  present, green = replaced by hand-written equivalent)
+- fig_12_overall_Roadmap.png updated: all 6 problem x stage cells green PASS,
+  only the application layer remains (dashed NEXT)
+- reports reflect the 6-file per-stage main mechanism (main_b12_[A|B]_S0[1-3].c
+  beside the hand tree's main.c) and the 3-zone vendor layout
+- remove the old Vietnamese Problem A report pair (English-on-main rule)
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01DDCgmmmEbjiwhvX38rHepP
