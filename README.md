@@ -1,51 +1,51 @@
 # STM32F103C8T6 — Industrial Library Structure Learning
 
-Dự án nghiên cứu và phân tích chuyên sâu kiến trúc thư viện phần mềm công nghiệp của STMicroelectronics (dành cho dòng vi điều khiển STM32F103C8T6). 
+An in-depth research and analysis project on the architecture of STMicroelectronics' industrial software libraries (for the STM32F103C8T6 microcontroller series). 
 
-**Mục tiêu cốt lõi:** Phương pháp của dự án không nhằm bài trừ thư viện hãng, mà sử dụng việc lập trình can thiệp trực tiếp thanh ghi (bare-metal C) như một công cụ bóc tách. Quá trình tự xây dựng lại các module giúp thấu hiểu trọn vẹn tư duy thiết kế, cách tổ chức mã nguồn và kiến trúc nền tảng của thư viện HAL/LL chuẩn.
+**Core Objective:** The project's methodology does not aim to reject the manufacturer's libraries, but rather uses direct register-level programming (bare-metal C) as a deconstruction tool. The process of rebuilding the modules from scratch helps to fully understand the design philosophy, source code organization, and foundational architecture of the standard HAL/LL libraries.
 
-**Hướng dẫn tiếp cận dự án:**
-*   **Bước 1:** Đọc file `AGENTS.md` để nắm rõ các quy tắc đối chiếu và tiêu chuẩn xây dựng mã nguồn.
-*   **Bước 2:** Tham khảo `docs/platform-v2.md` để hiểu kiến trúc tổng thể (platform blueprint) đang được mô phỏng lại.
-*   **Bước 3:** Truy cập `docs/detected-issues/` để tra cứu các lỗi kỹ thuật phát sinh trong quá trình bóc tách phần cứng và cách khắc phục.
+**Project Approach Guidelines:**
+*   **Step 1:** Read the `AGENTS.md` file to thoroughly understand the comparison rules and source code construction standards.
+*   **Step 2:** Refer to `docs/platform-v2.md` to understand the overall architecture (platform blueprint) being simulated.
+*   **Step 3:** Access `docs/detected-issues/` to look up technical issues encountered during hardware deconstruction and their resolutions.
 
 ---
 
-## 📦 Chi tiết các thành phần dự án
+## 📦 Project Components Details
 
-Dự án triển khai mô hình học tập "song song" (Dual-track), chia mã nguồn thành các khu vực đối chiếu rõ ràng:
+The project implements a "Dual-track" learning model, dividing the source code into clear comparison areas:
 
 *   **`C&C++/`**
-    *   Thư mục chứa mã nguồn firmware tự phát triển 100% ở mức thanh ghi (bare-metal).
-    *   Tuân thủ nghiêm ngặt quy tắc NO HAL / NO LL trong nhân firmware chính để phục vụ việc học cốt lõi.
+    *   Directory containing 100% self-developed firmware source code at the register level (bare-metal).
+    *   Strictly adheres to the NO HAL / NO LL rule in the main firmware core to serve core learning purposes.
 
 *   **`Take note quá trình học thanh ghi/`**
-    *   Tài liệu ghi chép cá nhân trong từng buổi học thực hành phân tích thư viện (ngôn ngữ Tiếng Việt).
+    *   Personal notes documented during each practical library analysis session (in Vietnamese).
 
 *   **`docs/`**
-    *   Lưu trữ các bản thiết kế kiến trúc (blueprint) và kho lỗi (detected-issues).
-    *   Được tổ chức có cấu trúc nhằm phục vụ quá trình tra cứu của kỹ sư và các tác vụ phân tích của AI.
+    *   Stores architectural blueprints and the issue repository (detected-issues).
+    *   Structurally organized to facilitate engineer reference and AI analysis tasks.
 
-*   **`Manufacturer_Package/` — Dữ liệu đối chiếu gốc (Provenance)**
-    *   Khu vực này tuyệt đối không chứa mã nguồn tự viết, chỉ lưu trữ mã nguồn nguyên bản từ STMicroelectronics để làm "kim chỉ nam" tham chiếu kiến trúc. Bao gồm:
-    *   `STM32CubeF1/`: Bản sao (clone) nguyên trạng từ repository chính thức của hãng (kèm 3 submodule driver). Mã nguồn tuân thủ giấy phép **BSD-3-Clause** và file `LICENSE.md` gốc được giữ nguyên. Các metadata của `.git` đã được loại bỏ để dự án tự quản lý độc lập.
-    *   `No.0_C&C++_Industrial_Draft/`: Đây chính là kết quả của quá trình tự "clone" lại các driver dựa trên việc phân tích cấu trúc từ thư viện hãng. Chứa các file gốc của ST (giữ nguyên 100% tên và nội dung) nhưng được **di chuyển** vào mô hình thư mục phân cấp giống hệt với `C&C++/`. 
-        *   *Mục đích:* Học tập song song — viết bản bare-metal tự tay bên `C&C++/` trước, sau đó đối chiếu trực tiếp với cách tổ chức API của hãng bên này. 
-        *   *Lập bản đồ tiến độ:* File hãng chỉ được "nhập kho" vào thư mục Draft này khi lộ trình học chạm đến. Lịch sử commit (git history) tại đây phản ánh chính xác tiến trình tiếp thu tư duy thiết kế của hãng. Mỗi lần tái cấu trúc lớn sẽ tạo đợt mới (`No.1_`, `No.2_`...).
+*   **`Manufacturer_Package/` — Original Reference Data (Provenance)**
+    *   This area strictly contains no self-written code; it only stores the original source code from STMicroelectronics to serve as a "guiding compass" for architectural reference. Includes:
+    *   `STM32CubeF1/`: An exact clone from the manufacturer's official repository (including 3 submodule drivers). The source code complies with the **BSD-3-Clause** license, and the original `LICENSE.md` file is preserved. The `.git` metadata has been removed so the project can be managed independently.
+    *   `No.0_C&C++_Industrial_Draft/`: This is the result of the process of manually "cloning" the drivers based on analyzing the structure of the manufacturer's library. It contains the original ST files (retaining 100% of names and content) but **moved** into a hierarchical directory model identical to `C&C++/`. 
+        *   *Purpose:* Dual-track learning — writing the manual bare-metal version in `C&C++/` first, then directly comparing it with the manufacturer's API organization here. 
+        *   *Progress Mapping:* Manufacturer files are only "imported" into this Draft directory when reached in the learning roadmap. The commit history (git history) here accurately reflects the progress of absorbing the manufacturer's design philosophy. Each major restructuring will create a new batch (`No.1_`, `No.2_`...).
 
 ---
 
-## 🗂️ Cấu trúc cây thư mục tổng quan
+## 🗂️ Overview of Directory Tree Structure
 
 ```text
 .
-├── AGENTS.md                               # Quy tắc và tiêu chuẩn dự án
-├── C&C++/                                  # Firmware tự phát triển (100% bare-metal)
-├── docs/                                   # Tài liệu kỹ thuật, kiến trúc và kho lỗi
-│   ├── detected-issues/                    # Kho lưu trữ các lỗi đã gặp
-│   └── platform-v2.md                      # Blueprint kiến trúc platform
-├── Manufacturer_Package/                   # Dữ liệu đối chiếu gốc (Provenance)
-│   ├── No.0_C&C++_Industrial_Draft/        # Bản tái cấu trúc driver từ thư viện hãng
-│   └── STM32CubeF1/                        # Bản clone nguyên trạng từ ST
-└── Take note quá trình học thanh ghi/      # Ghi chú học tập cá nhân
+├── AGENTS.md                               # Project rules and standards
+├── C&C++/                                  # Self-developed firmware (100% bare-metal)
+├── docs/                                   # Technical documentation, architecture, and issue repository
+│   ├── detected-issues/                    # Repository of encountered issues
+│   └── platform-v2.md                      # Platform architecture blueprint
+├── Manufacturer_Package/                   # Original reference data (Provenance)
+│   ├── No.0_C&C++_Industrial_Draft/        # Restructured driver from manufacturer's library
+│   └── STM32CubeF1/                        # Exact clone from ST
+└── Take note quá trình học thanh ghi/      # Personal learning notes
 ```
