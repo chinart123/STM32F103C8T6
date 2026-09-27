@@ -1,171 +1,310 @@
 #ifndef _DMA_H_
 #define _DMA_H_
 
+#include <common.h>
 #include <define.h>
-
-/* DMA - Direct Memory Access controller (RM0008 chapter 13).
- *
- * DMA1 has 7 channels. Each channel is the same 5-word block (CCR, CNDTR,
- * CPAR, CMAR, one reserved word = 20 bytes), repeated back-to-back after the
- * two shared status registers (ISR / IFCR) - so the map below models a
- * channel once and stacks 7 of them in an array.
- *
- * Channel numbering: RM0008 counts channels 1..7, C arrays count 0..6 -
- * DMA1.CH[0] is "DMA1_Channel1" in the manual, DMA1.CH[4] is channel 5.
- *
- * EXAMPLE (mem2mem one-shot copy of 8 words, Buoi 12 Problem A):
- *            RCC.AHB_ENR.BITS.DMA1 = 1;          // clock first, always
- *            DMA1.CH[0].CCR.REG = 0;             // configure only while EN=0
- *            DMA1.CH[0].CCR.BITS.MEM2MEM = 1;    // no peripheral, RAM->RAM
- *            DMA1.CH[0].CCR.BITS.MSIZE = 2;      // 2 = 32-bit cells
- *            DMA1.CH[0].CCR.BITS.PSIZE = 2;
- *            DMA1.CH[0].CCR.BITS.MINC  = 1;      // walk both arrays
- *            DMA1.CH[0].CCR.BITS.PINC  = 1;
- *            DMA1.CH[0].CNDTR.BITS.NDT = 8;
- *            DMA1.CH[0].CPAR = (unsigned long)src;
- *            DMA1.CH[0].CMAR = (unsigned long)dst;
- *            DMA1.CH[0].CCR.BITS.EN = 1;         // GO - hardware copies alone
- *            while (!DMA1.ISR.BITS.TCIF1) { }    // (optional) done flag
- */
-
 //                                      |       //Address       Default         Description
 typedef struct
 {
-  BUNION(CCR, unsigned long,                     //0x08+20*(x-1)  0               Channel x configuration register
-    EN                                  , 1,    //0             0               Channel enable (config only while 0)
+  BUNION(CCR, unsigned long,                     //              0x0000'0000     DMA channel x configuration register
+    EN                                  , 1,    //0             0               Channel enable
     TCIE                                , 1,    //1             0               Transfer complete interrupt enable
     HTIE                                , 1,    //2             0               Half transfer interrupt enable
     TEIE                                , 1,    //3             0               Transfer error interrupt enable
-    DIR                                 , 1,    //4             0               Direction: 0 = read peripheral, 1 = read memory
-    CIRC                                , 1,    //5             0               Circular mode (CNDTR auto-reload)
+    DIR                                 , 1,    //4             0               Data transfer direction
+    CIRC                                , 1,    //5             0               Circular mode
     PINC                                , 1,    //6             0               Peripheral increment mode
     MINC                                , 1,    //7             0               Memory increment mode
-    PSIZE                               , 2,    //8:9           0               Peripheral size: 0 = 8-bit, 1 = 16-bit, 2 = 32-bit
-    MSIZE                               , 2,    //10:11         0               Memory size:     0 = 8-bit, 1 = 16-bit, 2 = 32-bit
-    PL                                  , 2,    //12:13         0               Priority level: 0 low .. 3 very high
-    MEM2MEM                             , 1,    //14            0               Memory-to-memory mode (no request needed)
+    PSIZE                               , 2,    //8-9           0               Peripheral size
+    MSIZE                               , 2,    //10-11         0               Memory size
+    PL                                  , 2,    //12-13         0               Channel priority level
+    MEM2MEM                             , 1,    //14            0               Memory to memory mode
     _reserved                           , 17);
-  BUNION(CNDTR, unsigned long,                   //+0x04          0               Channel x number-of-data register
-    NDT                                 , 16,   //0:15          0               Data count: down-counts per beat, CIRC reloads it
-    _reserved                           , 16);
-  unsigned long CPAR;                            //+0x08          0               Channel x peripheral address (full word, no fields)
-  unsigned long CMAR;                            //+0x0C          0               Channel x memory address     (full word, no fields)
-  unsigned long _reserved;                       //+0x10          -               pad to the 20-byte channel stride
-} DMA_CHANNEL_TypeDef;
+  unsigned long CNDTR;                           //              0x0000'0000     DMA channel x number of data register
+  unsigned long CPAR;                            //              0x0000'0000     DMA channel x peripheral address register
+  unsigned long CMAR;                            //              0x0000'0000     DMA channel x memory address register
+  unsigned long _reserved;
+} DMAChannel_TypeDef;
 
 typedef struct
 {
-  BUNION(ISR, unsigned long,                     //0x00           0               Interrupt status register (read-only)
-    const GIF1                          , 1,    //0             0               Channel 1 global flag (GIF = TCIF | HTIF | TEIF)
-    const TCIF1                         , 1,    //1             0               Channel 1 transfer complete flag
-    const HTIF1                         , 1,    //2             0               Channel 1 half transfer flag
-    const TEIF1                         , 1,    //3             0               Channel 1 transfer error flag
-    const GIF2                          , 1,    //4             0               Channel 2 global flag
-    const TCIF2                         , 1,    //5             0               Channel 2 transfer complete flag
-    const HTIF2                         , 1,    //6             0               Channel 2 half transfer flag
-    const TEIF2                         , 1,    //7             0               Channel 2 transfer error flag
-    const GIF3                          , 1,    //8             0               Channel 3 global flag
-    const TCIF3                         , 1,    //9             0               Channel 3 transfer complete flag
-    const HTIF3                         , 1,    //10            0               Channel 3 half transfer flag
-    const TEIF3                         , 1,    //11            0               Channel 3 transfer error flag
-    const GIF4                          , 1,    //12            0               Channel 4 global flag
-    const TCIF4                         , 1,    //13            0               Channel 4 transfer complete flag
-    const HTIF4                         , 1,    //14            0               Channel 4 half transfer flag
-    const TEIF4                         , 1,    //15            0               Channel 4 transfer error flag
-    const GIF5                          , 1,    //16            0               Channel 5 global flag
-    const TCIF5                         , 1,    //17            0               Channel 5 transfer complete flag
-    const HTIF5                         , 1,    //18            0               Channel 5 half transfer flag
-    const TEIF5                         , 1,    //19            0               Channel 5 transfer error flag
-    const GIF6                          , 1,    //20            0               Channel 6 global flag
-    const TCIF6                         , 1,    //21            0               Channel 6 transfer complete flag
-    const HTIF6                         , 1,    //22            0               Channel 6 half transfer flag
-    const TEIF6                         , 1,    //23            0               Channel 6 transfer error flag
-    const GIF7                          , 1,    //24            0               Channel 7 global flag
-    const TCIF7                         , 1,    //25            0               Channel 7 transfer complete flag
-    const HTIF7                         , 1,    //26            0               Channel 7 half transfer flag
-    const TEIF7                         , 1,    //27            0               Channel 7 transfer error flag
+  BUNION(ISR, unsigned long const,               //              0x0000'0000     DMA interrupt status register
+    GIF1                                , 1,    //0             0               Channel x global interrupt flag
+    TCIF1                               , 1,    //1             0               Channel x transfer complete flag
+    HTIF1                               , 1,    //2             0               Channel x half transfer flag
+    TEIF1                               , 1,    //3             0               Channel x transfer error flag
+    GIF2                                , 1,    //4             0
+    TCIF2                               , 1,    //5             0
+    HTIF2                               , 1,    //6             0
+    TEIF2                               , 1,    //7             0    
+    GIF3                                , 1,    //8             0
+    TCIF3                               , 1,    //9             0
+    HTIF3                               , 1,    //10            0
+    TEIF3                               , 1,    //11            0    
+    GIF4                                , 1,    //12            0
+    TCIF4                               , 1,    //13            0
+    HTIF4                               , 1,    //14            0
+    TEIF4                               , 1,    //15            0    
+    GIF5                                , 1,    //16            0
+    TCIF5                               , 1,    //17            0
+    HTIF5                               , 1,    //18            0
+    TEIF5                               , 1,    //19            0    
+    GIF6                                , 1,    //20            0
+    TCIF6                               , 1,    //21            0
+    HTIF6                               , 1,    //22            0
+    TEIF6                               , 1,    //23            0    
+    GIF7                                , 1,    //24            0
+    TCIF7                               , 1,    //25            0
+    HTIF7                               , 1,    //26            0
+    TEIF7                               , 1,    //27            0
     _reserved                           , 4);
-  BUNION(IFCR, unsigned long,                    //0x04           0               Interrupt flag clear register (write 1 to clear)
-    CGIF1                               , 1,    //0             0               Clear channel 1 global flag (clears TC/HT/TE too)
-    CTCIF1                              , 1,    //1             0               Clear channel 1 transfer complete flag
-    CHTIF1                              , 1,    //2             0               Clear channel 1 half transfer flag
-    CTEIF1                              , 1,    //3             0               Clear channel 1 transfer error flag
-    CGIF2                               , 1,    //4             0               Clear channel 2 global flag
-    CTCIF2                              , 1,    //5             0               Clear channel 2 transfer complete flag
-    CHTIF2                              , 1,    //6             0               Clear channel 2 half transfer flag
-    CTEIF2                              , 1,    //7             0               Clear channel 2 transfer error flag
-    CGIF3                               , 1,    //8             0               Clear channel 3 global flag
-    CTCIF3                              , 1,    //9             0               Clear channel 3 transfer complete flag
-    CHTIF3                              , 1,    //10            0               Clear channel 3 half transfer flag
-    CTEIF3                              , 1,    //11            0               Clear channel 3 transfer error flag
-    CGIF4                               , 1,    //12            0               Clear channel 4 global flag
-    CTCIF4                              , 1,    //13            0               Clear channel 4 transfer complete flag
-    CHTIF4                              , 1,    //14            0               Clear channel 4 half transfer flag
-    CTEIF4                              , 1,    //15            0               Clear channel 4 transfer error flag
-    CGIF5                               , 1,    //16            0               Clear channel 5 global flag
-    CTCIF5                              , 1,    //17            0               Clear channel 5 transfer complete flag
-    CHTIF5                              , 1,    //18            0               Clear channel 5 half transfer flag
-    CTEIF5                              , 1,    //19            0               Clear channel 5 transfer error flag
-    CGIF6                               , 1,    //20            0               Clear channel 6 global flag
-    CTCIF6                              , 1,    //21            0               Clear channel 6 transfer complete flag
-    CHTIF6                              , 1,    //22            0               Clear channel 6 half transfer flag
-    CTEIF6                              , 1,    //23            0               Clear channel 6 transfer error flag
-    CGIF7                               , 1,    //24            0               Clear channel 7 global flag
-    CTCIF7                              , 1,    //25            0               Clear channel 7 transfer complete flag
-    CHTIF7                              , 1,    //26            0               Clear channel 7 half transfer flag
-    CTEIF7                              , 1,    //27            0               Clear channel 7 transfer error flag
+  BUNION(IFCR, unsigned long,                    //              0x0000'0000     DMA interrupt flag clear register
+    CGIF1                               , 1,    //0             0               Channel x global interrupt clear
+    CTCIF1                              , 1,    //1             0               Channel x transfer complete clear
+    CHTIF1                              , 1,    //2             0               Channel x half transfer clear
+    CTEIF1                              , 1,    //3             0               Channel x transfer error clear
+    CGIF2                               , 1,    //4             0
+    CTCIF2                              , 1,    //5             0
+    CHTIF2                              , 1,    //6             0
+    CTEIF2                              , 1,    //7             0
+    CGIF3                               , 1,    //8             0
+    CTCIF3                              , 1,    //9             0
+    CHTIF3                              , 1,    //10            0
+    CTEIF3                              , 1,    //11            0
+    CGIF4                               , 1,    //12            0
+    CTCIF4                              , 1,    //13            0
+    CHTIF4                              , 1,    //14            0
+    CTEIF4                              , 1,    //15            0
+    CGIF5                               , 1,    //16            0
+    CTCIF5                              , 1,    //17            0
+    CHTIF5                              , 1,    //18            0
+    CTEIF5                              , 1,    //19            0
+    CGIF6                               , 1,    //20            0
+    CTCIF6                              , 1,    //21            0
+    CHTIF6                              , 1,    //22            0
+    CTEIF6                              , 1,    //23            0
+    CGIF7                               , 1,    //24            0
+    CTCIF7                              , 1,    //25            0
+    CHTIF7                              , 1,    //26            0
+    CTEIF7                              , 1,    //27            0
     _reserved                           , 4);
-  DMA_CHANNEL_TypeDef CH[7];                     //0x08           -               CH[x-1] = RM0008 channel x (20-byte stride)
+  DMAChannel_TypeDef Channel_1;
+  DMAChannel_TypeDef Channel_2;
+  DMAChannel_TypeDef Channel_3;
+  DMAChannel_TypeDef Channel_4;
+  DMAChannel_TypeDef Channel_5;
+  DMAChannel_TypeDef Channel_6;
+  DMAChannel_TypeDef Channel_7;  
 } DMA_TypeDef;
 
-/* Bit-band twin: every bit above becomes one 32-bit word in the alias region
- * (0x40020000 -> alias 0x42400000). Whole-word registers (CPAR/CMAR) keep no
- * useful bit meaning there, so they are plain 32-word pads. */
 typedef struct
 {
-  RSTRUCT(CCR, unsigned long,                    //                              Channel x configuration register
+  RSTRUCT(CCR, unsigned long,                    //              0x0000'0000     DMA channel x configuration register
     EN                                     ,    //0             0               Channel enable
     TCIE                                   ,    //1             0               Transfer complete interrupt enable
     HTIE                                   ,    //2             0               Half transfer interrupt enable
     TEIE                                   ,    //3             0               Transfer error interrupt enable
-    DIR                                    ,    //4             0               Direction
+    DIR                                    ,    //4             0               Data transfer direction
     CIRC                                   ,    //5             0               Circular mode
     PINC                                   ,    //6             0               Peripheral increment mode
     MINC                                   ,    //7             0               Memory increment mode
-    PSIZE                               [2],    //8:9           0               Peripheral size
-    MSIZE                               [2],    //10:11         0               Memory size
-    PL                                  [2],    //12:13         0               Priority level
-    MEM2MEM                                ,    //14            0               Memory-to-memory mode
-    _reserved                          [17]);
-  RSTRUCT(CNDTR, unsigned long,                  //                              Channel x number-of-data register
-    NDT                                [16],    //0:15          0               Data count
-    _reserved                          [16]);
-  unsigned long CPAR[32];                        //                              full-word register - no single-bit use
-  unsigned long CMAR[32];                        //                              full-word register - no single-bit use
-  unsigned long _reserved[32];                   //                              channel stride pad
-} DMA_CHANNEL_BITBAND_TypeDef;
+    PSIZE                               [2],    //8-9           0               Peripheral size
+    MSIZE                               [2],    //10-11         0               Memory size
+    PL                                  [2],    //12-13         0               Channel priority level
+    MEM2MEM                                ,    //14            0               Memory to memory mode
+    _reserved                           [17]);
+  unsigned long CNDTR[32];                       //              0               DMA channel x number of data register
+  unsigned long CPAR[32];                        //              0               DMA channel x peripheral address register
+  unsigned long CMAR[32];                        //              0               DMA channel x memory address register
+  unsigned long _reserved[32];
+} DMAChannel_BITBAND_TypeDef;
 
 typedef struct
 {
-  RSTRUCT(ISR, unsigned long,                    //                              Interrupt status register (read-only)
-    const GIF1, const TCIF1, const HTIF1, const TEIF1,    //0:3
-    const GIF2, const TCIF2, const HTIF2, const TEIF2,    //4:7
-    const GIF3, const TCIF3, const HTIF3, const TEIF3,    //8:11
-    const GIF4, const TCIF4, const HTIF4, const TEIF4,    //12:15
-    const GIF5, const TCIF5, const HTIF5, const TEIF5,    //16:19
-    const GIF6, const TCIF6, const HTIF6, const TEIF6,    //20:23
-    const GIF7, const TCIF7, const HTIF7, const TEIF7,    //24:27
+  RSTRUCT(ISR, unsigned long const,              //              0x0000'0000     DMA interrupt status register
+    GIF1                                   ,    //0             0               Channel x global interrupt flag
+    TCIF1                                  ,    //1             0               Channel x transfer complete flag
+    HTIF1                                  ,    //2             0               Channel x half transfer flag
+    TEIF1                                  ,    //3             0               Channel x transfer error flag
+    GIF2                                   ,    //4             0
+    TCIF2                                  ,    //5             0
+    HTIF2                                  ,    //6             0
+    TEIF2                                  ,    //7             0  
+    GIF3                                   ,    //8             0
+    TCIF3                                  ,    //9             0
+    HTIF3                                  ,    //10            0
+    TEIF3                                  ,    //11            0  
+    GIF4                                   ,    //12            0
+    TCIF4                                  ,    //13            0
+    HTIF4                                  ,    //14            0
+    TEIF4                                  ,    //15            0  
+    GIF5                                   ,    //16            0
+    TCIF5                                  ,    //17            0
+    HTIF5                                  ,    //18            0
+    TEIF5                                  ,    //19            0  
+    GIF6                                   ,    //20            0
+    TCIF6                                  ,    //21            0
+    HTIF6                                  ,    //22            0
+    TEIF6                                  ,    //23            0  
+    GIF7                                   ,    //24            0
+    TCIF7                                  ,    //25            0
+    HTIF7                                  ,    //26            0
+    TEIF7                                  ,    //27            0
     _reserved                           [4]);
-  RSTRUCT(IFCR, unsigned long,                   //                              Interrupt flag clear register (write 1 to clear)
-    CGIF1, CTCIF1, CHTIF1, CTEIF1,               //0:3
-    CGIF2, CTCIF2, CHTIF2, CTEIF2,               //4:7
-    CGIF3, CTCIF3, CHTIF3, CTEIF3,               //8:11
-    CGIF4, CTCIF4, CHTIF4, CTEIF4,               //12:15
-    CGIF5, CTCIF5, CHTIF5, CTEIF5,               //16:19
-    CGIF6, CTCIF6, CHTIF6, CTEIF6,               //20:23
-    CGIF7, CTCIF7, CHTIF7, CTEIF7,               //24:27
+  RSTRUCT(IFCR, unsigned long,                   //              0x0000'0000     DMA interrupt flag clear register
+    CGIF1                                  ,    //0             0               Channel x global interrupt clear
+    CTCIF1                                 ,    //1             0               Channel x transfer complete clear
+    CHTIF1                                 ,    //2             0               Channel x half transfer clear
+    CTEIF1                                 ,    //3             0               Channel x transfer error clear
+    CGIF2                                  ,    //4             0
+    CTCIF2                                 ,    //5             0
+    CHTIF2                                 ,    //6             0
+    CTEIF2                                 ,    //7             0  
+    CGIF3                                  ,    //8             0
+    CTCIF3                                 ,    //9             0
+    CHTIF3                                 ,    //10            0
+    CTEIF3                                 ,    //11            0  
+    CGIF4                                  ,    //12            0
+    CTCIF4                                 ,    //13            0
+    CHTIF4                                 ,    //14            0
+    CTEIF4                                 ,    //15            0  
+    CGIF5                                  ,    //16            0
+    CTCIF5                                 ,    //17            0
+    CHTIF5                                 ,    //18            0
+    CTEIF5                                 ,    //19            0  
+    CGIF6                                  ,    //20            0
+    CTCIF6                                 ,    //21            0
+    CHTIF6                                 ,    //22            0
+    CTEIF6                                 ,    //23            0  
+    CGIF7                                  ,    //24            0
+    CTCIF7                                 ,    //25            0
+    CHTIF7                                 ,    //26            0
+    CTEIF7                                 ,    //27            0
     _reserved                           [4]);
-  DMA_CHANNEL_BITBAND_TypeDef CH[7];             //                              CH[x-1] = RM0008 channel x
+  DMAChannel_BITBAND_TypeDef Channel_1;
+  DMAChannel_BITBAND_TypeDef Channel_2;
+  DMAChannel_BITBAND_TypeDef Channel_3;
+  DMAChannel_BITBAND_TypeDef Channel_4;
+  DMAChannel_BITBAND_TypeDef Channel_5;
+  DMAChannel_BITBAND_TypeDef Channel_6;
+  DMAChannel_BITBAND_TypeDef Channel_7;  
 } DMA_BITBAND_TypeDef;
+//==============================================================================================================================================================
+//========================================================       DMA1 request      =============================================================================
+//==============================================================================================================================================================
+#define DMA_ADC1                DMA1.Channel_1
+#define DMA_TIM2_CH3            DMA1.Channel_1
+#define DMA_TIM4_CH1            DMA1.Channel_1
+
+#define DMA_SPI1_RX             DMA1.Channel_2
+#define DMA_UART3_TX            DMA1.Channel_2
+#define DMA_TIM1_CH1            DMA1.Channel_2
+#define DMA_TIM2_UP             DMA1.Channel_2
+#define DMA_TIM3_CH3            DMA1.Channel_2
+
+#define DMA_SPI1_TX             DMA1.Channel_3
+#define DMA_UART3_RX            DMA1.Channel_3
+#define DMA_TIM3_CH4            DMA1.Channel_3
+#define DMA_TIM3_UP             DMA1.Channel_3
+
+#define DMA_SPI2_RX             DMA1.Channel_4
+#define DMA_I2S2_RX             DMA1.Channel_4
+#define DMA_UART1_TX            DMA1.Channel_4
+#define DMA_I2C2_TX             DMA1.Channel_4
+#define DMA_TIM1_CH4            DMA1.Channel_4
+#define DMA_TIM1_TRIG           DMA1.Channel_4
+#define DMA_TIM1_COM            DMA1.Channel_4
+#define DMA_TIM4_CH2            DMA1.Channel_4
+
+#define DMA_SPI2_TX             DMA1.Channel_5
+#define DMA_I2S2_TX             DMA1.Channel_5
+#define DMA_UART1_RX            DMA1.Channel_5
+#define DMA_I2C2_RX             DMA1.Channel_5
+#define DMA_TIM1_UP             DMA1.Channel_5
+#define DMA_TIM2_CH1            DMA1.Channel_5
+#define DMA_TIM4_CH3            DMA1.Channel_5
+
+#define DMA_UART2_RX            DMA1.Channel_6
+#define DMA_I2C1_TX             DMA1.Channel_6
+#define DMA_TIM1_CH3            DMA1.Channel_6
+#define DMA_TIM3_CH1            DMA1.Channel_6
+#define DMA_TIM3_TRIG           DMA1.Channel_6
+
+#define DMA_UART2_TX            DMA1.Channel_7
+#define DMA_I2C1_RX             DMA1.Channel_7
+#define DMA_TIM2_CH2            DMA1.Channel_7
+#define DMA_TIM2_CH4            DMA1.Channel_7
+#define DMA_TIM4_UP             DMA1.Channel_7
+//==============================================================================================================================================================
+//========================================================       DMA2 request      =============================================================================
+//==============================================================================================================================================================
+#define DMA_SPI3_RX             DMA2.Channel_1
+#define DMA_I2S3_RX             DMA2.Channel_1
+#define DMA_TIM5_CH4            DMA2.Channel_1
+#define DMA_TIM5_TRIG           DMA2.Channel_1
+#define DMA_TIM8_CH3            DMA2.Channel_1
+#define DMA_TIM8_UP             DMA2.Channel_1
+
+#define DMA_SPI3_TX             DMA2.Channel_2
+#define DMA_I2S3_TX             DMA2.Channel_2
+#define DMA_TIM5_CH3            DMA2.Channel_2
+#define DMA_TIM5_UP             DMA2.Channel_2
+#define DMA_TIM8_CH4            DMA2.Channel_2
+#define DMA_TIM8_TRIG           DMA2.Channel_2
+#define DMA_TIM8_COM            DMA2.Channel_2
+
+#define DMA_UART4_RX            DMA2.Channel_3
+#define DMA_TIM6_UP             DMA2.Channel_3
+#define DMA_DAC_CN1             DMA2.Channel_3
+#define DMA_TIM8_CH1            DMA2.Channel_3
+
+#define DMA_SDIO                DMA2.Channel_4
+#define DMA_TIM5_CH2            DMA2.Channel_4
+#define DMA_TIM7_UP             DMA2.Channel_4
+#define DMA_DAC_CN2             DMA2.Channel_4
+
+#define DMA_ADC3                DMA2.Channel_5
+#define DMA_UART4_TX            DMA2.Channel_5
+#define DMA_TIM5_CH1            DMA2.Channel_5
+#define DMA_TIM8_CH2            DMA2.Channel_5
+//==============================================================================================================================================================
+//===========================================================       LEVEL 1      ===============================================================================
+//==============================================================================================================================================================
+//                                      |       //Address       Default         Description
+typedef struct
+{
+  BUNION(Mode, unsigned long,
+    _reserved                           , 4,
+    IsReadFromMem                       , 1,    //4             0
+    IsCircleMode                        , 1,    //5             0
+    Peri_IsIncrement                    , 1,    //6             0
+    Mem_IsIncrement                     , 1,    //7             0
+    Peri_Size                           , 2,    //8-9           0               (2 ^ Peri_Size) bytes
+    Mem_Size                            , 2,    //10-11         0               (2 ^ Mem_Size) bytes
+    PriorityLevel                       , 2,    //12-13         0
+    IsMemToMem                          , 1,    //14            0
+    _reserved1                          , 17);
+  BUNION(Interrupt, unsigned long,
+    _reserved                           , 1,
+    Trans_Compelete                     , 1,    //0
+    HalfTrans                           , 1,    //0
+    Error                               , 1,    //0
+    _reserved1                          , 28);
+} DMAInit_TypeDef;
+/*
++) EXAMPLE:
+RCC_BITBAND.AHB_ENR.DMA1 = 1;
+DMAInit_TypeDef DMAInit = (DMAInit_TypeDef){
+  .Mode = {.BITS = { .IsReadFromMem = 0, .IsCircleMode = 0, .Peri_IsIncrement = 0, .Mem_IsIncrement = 0, .Peri_Size = 0, .Mem_Size = 0, .PriorityLevel = 0, .IsMemToMem = 0, },},  //size: 0: 1 byte / 1: 2 byte / 2: 4 byte
+  .Interrupt = {.BITS = {.Trans_Compelete = 0, .HalfTrans = 0, .Error = 0, }, },
+};
+DMA_Init(&DMA_UART1_RX, &DMAInit);
+*/
+void DMA_Init(volatile DMAChannel_TypeDef* DMAChannel, const DMAInit_TypeDef* DMAInit);
+//==============================================================================================================================================================
+#define DMA_Wait(DMAChannel)    while((DMAChannel)->CNDTR)
+//==============================================================================================================================================================
+void DMA_Transfer(volatile DMAChannel_TypeDef* DMAChannel, volatile void* MemPointer, volatile void* PeriPointer, unsigned long Size);
+//==============================================================================================================================================================
 
 #endif
